@@ -3,7 +3,7 @@
 Libro (Jupyter Book) con el análisis exploratorio, los seis modelos, LIME, las pruebas estadísticas y la
 discusión sobre el incumplimiento de préstamos de Lending Club, comparando scikit-learn y PySpark.
 
-**Libro publicado:** `https://anagalvan7.github.io/lending-club-jbook/` (se activa al publicar; ver abajo).
+**Libro publicado:** <https://anagalvan7.github.io/lending-club-jbook/>
 
 ## Contenido
 
@@ -64,14 +64,13 @@ máquina.
    cuaderno 03 guarda cada modelo apenas termina (`resultados/sp_modelo_<clave>.json`); si el proceso se
    interrumpe, al relanzarlo **no repite** los modelos ya guardados.
 
-## Construir y publicar el libro
+## Construir el libro localmente
 
 ```bash
 jupyter-book build .
-ghp-import -n -p -f _build/html
 ```
 
-Luego, en GitHub: *Settings → Pages → Branch: `gh-pages` / `(root)`*.
+El resultado queda en `_build/html/index.html`.
 
 ## Decisiones importantes
 
