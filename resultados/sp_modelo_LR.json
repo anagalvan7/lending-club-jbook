@@ -1,0 +1,22 @@
+{
+ "clave": "LR",
+ "modelo": "Regresi\u00f3n log\u00edstica",
+ "score_col": "probability",
+ "numFolds": 3,
+ "maxMemoryInMB": 64,
+ "maxBins": null,
+ "t_entrenamiento_con_cv_s": 3799.348739385605,
+ "mejores_hiperparametros": {
+  "regParam": 1e-06
+ },
+ "auc_cv": 0.7096318824343526,
+ "auc_cv_sd": 0.00016248749613369194,
+ "t_prediccion_s": 0.8042306900024414,
+ "auc_test": 0.709491767840024,
+ "pr_auc_test": 0.3701478033996528,
+ "t_transferencia_s": 0.5343019962310791,
+ "umbral_f1": 0.2061,
+ "f1_oof": 0.4280137890709083,
+ "t_oof_umbral_s": 364.87682700157166,
+ "umbral_defecto": 0.5
+}

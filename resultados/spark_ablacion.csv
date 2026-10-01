@@ -1,0 +1,5 @@
+condición,con la condición (s),sin / alternativa (s),alternativa,factor (alternativa / condición)
+"Caché tras VectorAssembler (5 árboles, prof. 5)",50.64324641227722,68.54880404472351,sin .persist(),1.3535625952309709
+"400 particiones del DataFrame de entrenamiento (10 árboles, prof. 10)",141.73896384239197,15.111820936203003,12 particiones,0.10661726688651922
+"CrossValidator con numFolds=3 (usado en los seis modelos) vs 2, malla de 2 combinaciones",394.9945867061615,281.6295781135559,numFolds=2,0.7129960449889953
+"CrossValidator parallelism=1 (elegido) vs 3, 3 pliegues, malla de 2 combinaciones",394.9945867061615,350.70314264297485,parallelism=3,0.8878682251508037

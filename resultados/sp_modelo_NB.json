@@ -1,0 +1,20 @@
+{
+ "clave": "NB",
+ "modelo": "Naive Bayes",
+ "score_col": "probability",
+ "numFolds": 3,
+ "maxMemoryInMB": 64,
+ "maxBins": null,
+ "t_entrenamiento_con_cv_s": 2561.7368683815002,
+ "mejores_hiperparametros": {},
+ "auc_cv": 0.6886786963009497,
+ "auc_cv_sd": 0.0006774499329128768,
+ "t_prediccion_s": 0.5853335857391357,
+ "auc_test": 0.6882699592384434,
+ "pr_auc_test": 0.3480767821744155,
+ "t_transferencia_s": 0.2799031734466553,
+ "umbral_f1": 0.2159,
+ "f1_oof": 0.413873783018502,
+ "t_oof_umbral_s": 19.46464514732361,
+ "umbral_defecto": 0.5
+}

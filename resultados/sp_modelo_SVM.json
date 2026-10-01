@@ -1,0 +1,22 @@
+{
+ "clave": "SVM",
+ "modelo": "SVM lineal",
+ "score_col": "rawPrediction",
+ "numFolds": 3,
+ "maxMemoryInMB": 64,
+ "maxBins": null,
+ "t_entrenamiento_con_cv_s": 12955.437936067581,
+ "mejores_hiperparametros": {
+  "regParam": 1e-05
+ },
+ "auc_cv": 0.6113432281624148,
+ "auc_cv_sd": 0.0021487438674699455,
+ "t_prediccion_s": 0.601799726486206,
+ "auc_test": 0.5985175263609563,
+ "pr_auc_test": 0.28526421230042753,
+ "t_transferencia_s": 0.3255288600921631,
+ "umbral_f1": -1.000004670900264,
+ "f1_oof": 0.3583616946367797,
+ "t_oof_umbral_s": 3477.8661687374115,
+ "umbral_defecto": 0.0
+}

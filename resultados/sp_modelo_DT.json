@@ -1,0 +1,22 @@
+{
+ "clave": "DT",
+ "modelo": "\u00c1rbol de decisi\u00f3n",
+ "score_col": "probability",
+ "numFolds": 3,
+ "maxMemoryInMB": 64,
+ "maxBins": 32,
+ "t_entrenamiento_con_cv_s": 3866.8206765651703,
+ "mejores_hiperparametros": {
+  "maxDepth": 10
+ },
+ "auc_cv": 0.7002319580367745,
+ "auc_cv_sd": 0.0004927986300443463,
+ "t_prediccion_s": 0.6282615661621094,
+ "auc_test": 0.7003749796660795,
+ "pr_auc_test": 0.35924186125433555,
+ "t_transferencia_s": 0.27968406677246094,
+ "umbral_f1": 0.2061,
+ "f1_oof": 0.4196944167129694,
+ "t_oof_umbral_s": 334.45006108283997,
+ "umbral_defecto": 0.5
+}

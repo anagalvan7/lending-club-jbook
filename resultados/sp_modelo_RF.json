@@ -1,0 +1,23 @@
+{
+ "clave": "RF",
+ "modelo": "Bosque aleatorio",
+ "score_col": "probability",
+ "numFolds": 3,
+ "maxMemoryInMB": 64,
+ "maxBins": 32,
+ "t_entrenamiento_con_cv_s": 21144.727073431015,
+ "mejores_hiperparametros": {
+  "maxDepth": 15,
+  "numTrees": 100
+ },
+ "auc_cv": 0.7151518576118643,
+ "auc_cv_sd": 0.00023120031800359786,
+ "t_prediccion_s": 39.33988094329834,
+ "auc_test": 0.7151551651027874,
+ "pr_auc_test": 0.38130540594588735,
+ "t_transferencia_s": 7.9132912158966064,
+ "umbral_f1": 0.2159,
+ "f1_oof": 0.43196713483555277,
+ "t_oof_umbral_s": 6729.999937295914,
+ "umbral_defecto": 0.5
+}

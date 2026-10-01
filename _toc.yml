@@ -1,0 +1,12 @@
+format: jb-book
+root: intro
+chapters:
+  - file: notebooks/01_eda
+  - file: notebooks/02_sklearn_seis_modelos
+  - file: notebooks/03_pyspark_seis_modelos
+  - file: notebooks/03b_pyspark_costos
+  - file: notebooks/03c_pyspark_escala_ajustada
+  - file: notebooks/04_lime
+  - file: notebooks/05_estadistica
+  - file: notebooks/06_comparacion
+  - file: reflexion

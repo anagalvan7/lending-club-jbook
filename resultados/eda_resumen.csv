@@ -1,0 +1,11 @@
+Hallazgo,Detalle
+Tamaño del archivo,"2,260,701 filas × 151 columnas (carga pandas: 122 s)"
+Población y partición,"1,345,310 préstamos con desenlace conocido (Fully Paid / Charged Off): 1,076,248 de entrenamiento y 269,062 de prueba (apartada); se excluyen 915,391 vigentes/atrasados/otros"
+Calidad: nulos,"42 columnas con >70 % de nulos (se descartan); variables del modelo con nulos: emp_length, mort_acc, revol_util, dti, inq_last_6mths"
+Calidad: valores extremos o inválidos,"1 fila(s) con dti = −1 (inválido, tratado como faltante); 428 con dti > 100; 3,781 con revol_util > 100 % (extremos, se conservan)"
+Desbalance,20.0% de incumplimiento (≈ 4.0:1)
+Variables numéricas más asociadas,"int_rate (d = +0.67), fico_range_high (d = -0.33)"
+Variables categóricas más asociadas,"term_months (V = 0.18), verification_status (V = 0.09)"
+Colinealidad,"2 pares numéricos con |r| > 0.7 (p. ej. loan_amnt y installment, r = 0.95); fico_range_low y funded_amnt redundantes (no usadas)"
+Fuga de datos,columnas posteriores al préstamo con AUC individual de hasta 0.94: excluidas del modelo
+Sesgo temporal,los préstamos recientes están censurados; se añade validación temporal complementaria

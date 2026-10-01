@@ -1,0 +1,9 @@
+[
+  {"llamada": 1, "filas por llamada": 1, "segundos": 535.6},
+  {"llamada": 2, "filas por llamada": 1, "segundos": 476.2},
+  {"llamada": 3, "filas por llamada": 1, "segundos": 468.7},
+  {"llamada": 4, "filas por llamada": 1, "segundos": 465.1},
+  {"llamada": 5, "filas por llamada": 1, "segundos": 462.9},
+  {"llamada": 6, "filas por llamada": 100, "segundos": 467.8},
+  {"llamada": 7, "filas por llamada": 100, "segundos": 469.5}
+]

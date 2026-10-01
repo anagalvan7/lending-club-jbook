@@ -1,0 +1,23 @@
+{
+ "clave": "GB",
+ "modelo": "Gradient boosting",
+ "score_col": "probability",
+ "numFolds": 3,
+ "maxMemoryInMB": 64,
+ "maxBins": 32,
+ "t_entrenamiento_con_cv_s": 36419.12744140625,
+ "mejores_hiperparametros": {
+  "maxDepth": 5,
+  "maxIter": 100
+ },
+ "auc_cv": 0.7181982129486268,
+ "auc_cv_sd": 0.00014292504442114953,
+ "t_prediccion_s": 2.3825948238372803,
+ "auc_test": 0.7189468176515581,
+ "pr_auc_test": 0.386134284492639,
+ "t_transferencia_s": 0.4966914653778076,
+ "umbral_f1": 0.2159,
+ "f1_oof": 0.43437416372104937,
+ "t_oof_umbral_s": 12059.14381313324,
+ "umbral_defecto": 0.5
+}

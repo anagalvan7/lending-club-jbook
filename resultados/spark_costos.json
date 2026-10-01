@@ -1,0 +1,78 @@
+{
+  "latencia_bosque_final_mediana_s": 468.7,
+  "createDataFrame_s": [
+    {
+      "Arrow": "s\u00ed",
+      "filas": 1,
+      "createDataFrame + count (s)": 0.167339300038293
+    },
+    {
+      "Arrow": "s\u00ed",
+      "filas": 100,
+      "createDataFrame + count (s)": 0.11068480019457638
+    },
+    {
+      "Arrow": "s\u00ed",
+      "filas": 5000,
+      "createDataFrame + count (s)": 0.22265110001899302
+    },
+    {
+      "Arrow": "no",
+      "filas": 1,
+      "createDataFrame + count (s)": 512.8104989998974
+    },
+    {
+      "Arrow": "no",
+      "filas": 100,
+      "createDataFrame + count (s)": 501.7016779000405
+    },
+    {
+      "Arrow": "no",
+      "filas": 5000,
+      "createDataFrame + count (s)": 508.82805399992503
+    }
+  ],
+  "latencia_modelos_pequenos": [
+    {
+      "modelo": "10 \u00e1rboles, prof. 5",
+      "nodos": 44,
+      "filas": 1,
+      "latencia mediana (s)": 0.8081894000060856
+    },
+    {
+      "modelo": "10 \u00e1rboles, prof. 5",
+      "nodos": 44,
+      "filas": 100,
+      "latencia mediana (s)": 0.8047406999394298
+    },
+    {
+      "modelo": "10 \u00e1rboles, prof. 5",
+      "nodos": 44,
+      "filas": 5000,
+      "latencia mediana (s)": 0.9587133000604808
+    },
+    {
+      "modelo": "20 \u00e1rboles, prof. 10",
+      "nodos": 19302,
+      "filas": 1,
+      "latencia mediana (s)": 0.8290387000888586
+    },
+    {
+      "modelo": "20 \u00e1rboles, prof. 10",
+      "nodos": 19302,
+      "filas": 100,
+      "latencia mediana (s)": 0.6285217998083681
+    },
+    {
+      "modelo": "20 \u00e1rboles, prof. 10",
+      "nodos": 19302,
+      "filas": 5000,
+      "latencia mediana (s)": 0.9207770999055356
+    }
+  ],
+  "latencia_predict_s": {
+    "1": 0.8290387000888586,
+    "100": 0.6285217998083681,
+    "5000": 0.9207770999055356
+  }
+}

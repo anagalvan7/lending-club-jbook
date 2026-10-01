@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+_build/
+# Datos y modelos pesados (el CSV pesa 1.6 GB; ver README para descargarlo)
+data/
+*.csv.gz
+spark-warehouse/
+# Copias locales que no se publican
+respaldo_antes_correcciones/
+*.zip

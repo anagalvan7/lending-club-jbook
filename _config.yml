@@ -1,0 +1,35 @@
+# Se construye con:  jupyter-book build .
+title: "Incumplimiento de préstamos en Lending Club: scikit-learn frente a PySpark"
+author: "Ana Galván Arias, Valeria Oñate López, María José Ruiz Arias"
+copyright: "2026"
+
+# Las salidas de los cuadernos son REALES: se ejecutaron una vez (varias tardan más de una hora) y quedaron
+# guardadas en los .ipynb. Por eso el libro no vuelve a ejecutarlos al construirse.
+execute:
+  execute_notebooks: "off"
+
+only_build_toc_files: true
+
+repository:
+  url: https://github.com/anagalvan7/lending-club-jbook
+  branch: main
+
+html:
+  use_repository_button: true
+  use_issues_button: false
+  use_edit_page_button: false
+
+parse:
+  myst_enable_extensions:
+    - amsmath
+    - colon_fence
+    - dollarmath
+    - deflist
+
+sphinx:
+  config:
+    language: es
+    nb_render_image_options:
+      width: 100%
+    nb_code_prompt_show: "Mostrar el código"
+    nb_code_prompt_hide: "Ocultar el código"

@@ -1,0 +1,41 @@
+{
+ "purpose": [
+  "educational",
+  "house",
+  "moving",
+  "renewable_energy",
+  "vacation",
+  "wedding"
+ ],
+ "home_ownership": [
+  "ANY",
+  "NONE",
+  "OTHER"
+ ],
+ "addr_state": [
+  "AK",
+  "AR",
+  "DC",
+  "DE",
+  "HI",
+  "IA",
+  "ID",
+  "KS",
+  "KY",
+  "ME",
+  "MS",
+  "MT",
+  "ND",
+  "NE",
+  "NH",
+  "NM",
+  "OK",
+  "RI",
+  "SD",
+  "UT",
+  "VT",
+  "WV",
+  "WY"
+ ],
+ "verification_status": []
+}
