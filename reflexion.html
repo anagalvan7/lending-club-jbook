@@ -1,0 +1,900 @@
+
+
+<!DOCTYPE html>
+
+
+<html lang="es" data-content_root="" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>Discusión y conclusiones &#8212; Incumplimiento de préstamos en Lending Club: scikit-learn frente a PySpark</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" href="_static/styles/sphinx-book-theme.css?digest=14f4ca6b54d191a8c7657f6c759bf11a5fb86285" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/togglebutton.css" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css" />
+    <link rel="stylesheet" type="text/css" href="_static/design-style.4045f2051d55cab465a707391d5b2007.min.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/clipboard.min.js"></script>
+    <script src="_static/copybutton.js"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?digest=5a5c038af52cf7bc1a1ec88eea08e6366ee68824"></script>
+    <script>let toggleHintShow = 'Haz clic para mostrar';</script>
+    <script>let toggleHintHide = 'Haz clic para ocultar';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="_static/togglebutton.js"></script>
+    <script src="_static/translations.js"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="_static/design-tabs.js"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"
+const thebe_selector = ".thebe,.cell"
+const thebe_selector_input = "pre"
+const thebe_selector_output = ".output, .cell_output"
+</script>
+    <script async="async" src="_static/sphinx-thebe.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'reflexion';</script>
+    <link rel="index" title="Índice" href="genindex.html" />
+    <link rel="search" title="Búsqueda" href="search.html" />
+    <link rel="prev" title="6 · Comparación de resultados: métricas, tiempos y volumen" href="notebooks/06_comparacion.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="es"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Saltar al contenido principal</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Volver arriba</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Advertencia de versión"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="intro.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Incumplimiento de préstamos en Lending Club: scikit-learn frente a PySpark</p>
+  
+</a></div>
+        <div class="sidebar-primary-item"><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="intro.html">
+                    Incumplimiento de préstamos en Lending Club: scikit-learn frente a PySpark
+                </a>
+            </li>
+        </ul>
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="notebooks/01_eda.html">1 · Análisis exploratorio de datos (EDA)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/02_sklearn_seis_modelos.html">2 · Preprocesamiento y modelado con scikit-learn (seis modelos)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/03_pyspark_seis_modelos.html">3 · Preprocesamiento y modelado con PySpark (seis modelos)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/03b_pyspark_costos.html">3b · Costos de PySpark: latencia de predicción y efecto de la configuración</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/03c_pyspark_escala_ajustada.html">3c · PySpark con el paralelismo ajustado al equipo (análisis de sensibilidad)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/04_lime.html">4 · Interpretabilidad con LIME</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/05_estadistica.html">5 · Comparación estadística de los modelos: DeLong, McNemar y bootstrap pareado</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/06_comparacion.html">6 · Comparación de resultados: métricas, tiempos y volumen</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Discusión y conclusiones</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><label class="sidebar-toggle primary-toggle btn btn-sm" for="__primary" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</label></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+<a href="https://github.com/anagalvan7/lending-club-jbook" target="_blank"
+   class="btn btn-sm btn-source-repository-button"
+   title="Repositorio de origen"
+   data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+
+</a>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Descarga esta pagina">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="_sources/reflexion.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Descargar archivo fuente"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Imprimir en PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Modo de pantalla completa"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="claro/oscuro" aria-label="claro/oscuro" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Búsqueda" aria-label="Búsqueda" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<label class="sidebar-toggle secondary-toggle btn btn-sm" for="__secondary"title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</label>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Discusión y conclusiones</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contenido </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#costo-computacional">Costo computacional</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#equivalencia-predictiva">Equivalencia predictiva</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#significancia-frente-a-relevancia">Significancia frente a relevancia</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#diferencias-de-implementacion">Diferencias de implementación</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#concordancia-entre-las-tres-pruebas">Concordancia entre las tres pruebas</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#escalabilidad">Escalabilidad</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#interpretabilidad">Interpretabilidad</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#efecto-de-la-configuracion-de-spark">Efecto de la configuración de Spark</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#conclusiones">Conclusiones</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#alcance-de-las-conclusiones">Alcance de las conclusiones</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#referencias">Referencias</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="discusion-y-conclusiones">
+<h1>Discusión y conclusiones<a class="headerlink" href="#discusion-y-conclusiones" title="Permalink to this heading">#</a></h1>
+<p>Todos los tiempos son de <strong>un solo equipo</strong>: Intel Core i5-13420H (8 núcleos, 12 hilos), 16 GB de RAM,
+Windows 11, Spark en modo local (<code class="docutils literal notranslate"><span class="pre">local[*]</span></code>). Nada de lo que sigue se midió en un clúster. Los cuadernos
+del libro contienen el código y las salidas completas de cada número citado aquí.</p>
+<section id="costo-computacional">
+<h2>Costo computacional<a class="headerlink" href="#costo-computacional" title="Permalink to this heading">#</a></h2>
+<p><strong>scikit-learn resultó más rápido que PySpark en los seis modelos, por un factor de ≈ 17:</strong> ≈ 1 h 21 min
+frente a ≈ 22 h 32 min (preprocesamiento + entrenamiento con validación cruzada + predicción +
+transferencia).</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Modelo</p></th>
+<th class="head"><p>scikit-learn</p></th>
+<th class="head"><p>PySpark</p></th>
+<th class="head"><p>Razón</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Regresión logística</p></td>
+<td><p>15 s</p></td>
+<td><p>1 h 03 min</p></td>
+<td><p>252×</p></td>
+</tr>
+<tr class="row-odd"><td><p>Árbol de decisión</p></td>
+<td><p>59 s</p></td>
+<td><p>1 h 04 min</p></td>
+<td><p>66×</p></td>
+</tr>
+<tr class="row-even"><td><p>Bosque aleatorio</p></td>
+<td><p>14 min</p></td>
+<td><p>5 h 52 min</p></td>
+<td><p>25×</p></td>
+</tr>
+<tr class="row-odd"><td><p><em>Gradient boosting</em></p></td>
+<td><p>54 min</p></td>
+<td><p>10 h 07 min</p></td>
+<td><p>11×</p></td>
+</tr>
+<tr class="row-even"><td><p>SVM lineal</p></td>
+<td><p>10 min</p></td>
+<td><p>3 h 36 min</p></td>
+<td><p>21×</p></td>
+</tr>
+<tr class="row-odd"><td><p>Naive Bayes</p></td>
+<td><p>5 s</p></td>
+<td><p>43 min</p></td>
+<td><p>495×</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Dos diferencias de procedimiento favorecen a scikit-learn en esta comparación. <code class="docutils literal notranslate"><span class="pre">GridSearchCV</span></code> reparte los
+ajustes de la malla entre los 12 hilos (<code class="docutils literal notranslate"><span class="pre">n_jobs=-1</span></code>), mientras que el <code class="docutils literal notranslate"><span class="pre">CrossValidator</span></code> evaluó un modelo a
+la vez (<code class="docutils literal notranslate"><span class="pre">parallelism</span> <span class="pre">=</span> <span class="pre">1</span></code>) por restricciones de memoria, lo que le resta ≈ 11 % de velocidad (3b.4). Por
+otra parte, en ambos entornos se excluye del total el tiempo de las predicciones fuera de pliegue usadas
+para elegir el umbral.</p>
+<p>Este resultado puede parecer contraintuitivo, dado que Spark se diseñó para acelerar el cómputo distribuido; las
+razones que se pudieron comprobar en el equipo utilizado son:</p>
+<ol class="arabic simple">
+<li><p><strong>El tamaño completo del conjunto de datos reduce la brecha, pero no la cierra en una sola máquina.</strong>
+En el experimento de escala, la razón de tiempos entre Spark y scikit-learn <strong>mejora</strong> al crecer los
+datos (de ≈ 625× con 10 000 filas a ≈ 16× con el entrenamiento completo, para un bosque fijo), porque el
+costo fijo de Spark pesa menos cuanto más grande es el lote. Pero incluso con <strong>1.08 millones de filas</strong>
+(el conjunto de entrenamiento completo) Spark sigue siendo más lento.</p></li>
+<li><p><strong>La caché</strong> (<code class="docutils literal notranslate"><span class="pre">persist</span></code> tras el <code class="docutils literal notranslate"><span class="pre">VectorAssembler</span></code>) sí ayuda: sin ella, un ajuste pequeño tardó ≈ 1.35×
+más. Es, de los elementos de configuración probados, el que <strong>más</strong> beneficia a Spark.</p></li>
+<li><p><strong>El <code class="docutils literal notranslate"><span class="pre">CrossValidator</span></code></strong> con 3 pliegues (los mismos de scikit-learn) tardó ≈ 1.4× más que con 2: la
+validación cruzada es cara porque reajusta cada combinación de hiperparámetros una vez por pliegue, y
+Spark hace cada ajuste mucho más lento que scikit-learn (ver el punto 5).</p></li>
+<li><p><strong>Las 400 particiones fijadas en la sesión</strong> penalizan en el equipo utilizado: un ajuste pequeño con 400
+particiones tardó ≈ 9.4× más que con 12 (las que corresponden a los hilos reales del equipo). Son 400
+tareas diminutas por etapa, con más costo de planificación que de cómputo.</p></li>
+<li><p><strong>En una sola máquina, Spark no puede repartir el trabajo entre nodos.</strong> Usa los mismos 12 hilos que scikit-learn
+(<code class="docutils literal notranslate"><span class="pre">n_jobs=-1</span></code>), pero paga costos que scikit-learn no tiene: planificar tareas, serializar datos entre
+Python y la JVM y, en los árboles, recorrer los datos una vez por cada nivel de profundidad (así entrena
+Spark ML, pensado para datos que no caben en un nodo).</p></li>
+<li><p><strong>Memoria.</strong> Con 16 GB de RAM, <code class="docutils literal notranslate"><span class="pre">maxMemoryInMB</span> <span class="pre">=</span> <span class="pre">64</span></code> (en vez del valor por defecto, 256) y
+<code class="docutils literal notranslate"><span class="pre">parallelism</span> <span class="pre">=</span> <span class="pre">1</span></code> en el <code class="docutils literal notranslate"><span class="pre">CrossValidator</span></code> fueron necesarios para que el bosque más grande no agotara la
+memoria; ninguno de los dos cambia el algoritmo, pero <strong>restan velocidad</strong> frente a configuraciones con
+más memoria disponible (≈ 11 % en el caso de <code class="docutils literal notranslate"><span class="pre">parallelism</span> <span class="pre">=</span> <span class="pre">1</span></code>; 3b.4).</p></li>
+</ol>
+<div class="admonition note">
+<p class="admonition-title">Nota</p>
+<p>Con 12 particiones en vez de las 400 de la sesión, el mismo bosque de referencia tarda ≈ 69 s frente a
+≈ 258 s: la brecha se reduce de ≈ 16× a ≈ 4× frente a scikit-learn (16 s), pero <strong>no desaparece</strong>.</p>
+</div>
+</section>
+<section id="equivalencia-predictiva">
+<h2>Equivalencia predictiva<a class="headerlink" href="#equivalencia-predictiva" title="Permalink to this heading">#</a></h2>
+<p><strong>Depende del modelo.</strong> Cinco de los seis dan prácticamente lo mismo en los dos entornos; el sexto (la SVM)
+es una excepción notable:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Modelo</p></th>
+<th class="head"><p>AUC scikit-learn</p></th>
+<th class="head"><p>AUC PySpark</p></th>
+<th class="head"><p>ΔAUC</p></th>
+<th class="head"><p>¿Relevante? (≥ 0.005)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Regresión logística</p></td>
+<td><p>0.7095</p></td>
+<td><p>0.7095</p></td>
+<td><p>+0.00000004</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-odd"><td><p>Árbol de decisión</p></td>
+<td><p>0.7022</p></td>
+<td><p>0.7004</p></td>
+<td><p>+0.0018</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-even"><td><p>Bosque aleatorio</p></td>
+<td><p>0.7164</p></td>
+<td><p>0.7152</p></td>
+<td><p>+0.0012</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-odd"><td><p><em><strong>Gradient boosting</strong></em></p></td>
+<td><p><strong>0.7196</strong></p></td>
+<td><p><strong>0.7189</strong></p></td>
+<td><p>+0.0007</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>SVM lineal</strong></p></td>
+<td><p><strong>0.4956</strong></p></td>
+<td><p><strong>0.5985</strong></p></td>
+<td><p><strong>−0.1029</strong></p></td>
+<td><p><strong>Sí</strong></p></td>
+</tr>
+<tr class="row-odd"><td><p>Naive Bayes</p></td>
+<td><p>0.6884</p></td>
+<td><p>0.6883</p></td>
+<td><p>+0.0001</p></td>
+<td><p>No</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Para los otros cinco modelos, las diferencias son estadísticamente significativas en casi todos los
+casos (269 062 observaciones de prueba permiten detectar diferencias muy pequeñas), pero <strong>ninguna alcanza el margen de
+relevancia práctica</strong> (ΔAUC ≥ 0.005, fijado antes de ver resultados). El mejor modelo de los doce es
+<em><strong>gradient boosting</strong></em>, en ambos entornos, con AUC ≈ 0.72.</p>
+<p><strong>La SVM es la única excepción relevante:</strong> en scikit-learn el AUC es 0.4956 (equivalente al azar) y en
+PySpark 0.5985 (débil pero real). La diferencia (ΔAUC = 0.103) es la única de las <strong>seis</strong> comparaciones
+entre entornos que supera el margen de relevancia práctica. La causa no es que «PySpark entienda mejor los
+datos»: es que <code class="docutils literal notranslate"><span class="pre">LinearSVC(loss=&quot;hinge&quot;)</span></code> de scikit-learn <strong>converge a una solución degenerada</strong> (ver la
+sección de diferencias de implementación).</p>
+</section>
+<section id="significancia-frente-a-relevancia">
+<h2>Significancia frente a relevancia<a class="headerlink" href="#significancia-frente-a-relevancia" title="Permalink to this heading">#</a></h2>
+<p><strong>Se hicieron dos familias de comparaciones DeLong</strong>, corregidas con Holm dentro de cada una:</p>
+<ul class="simple">
+<li><p><strong>Entre entornos (6 comparaciones, el mismo modelo en los dos motores):</strong> 5 de 6 son estadísticamente
+significativas tras Holm (todas menos la regresión logística, p ajustado = 0.48). <strong>Solo 1 de las 6 es
+relevante en la práctica: la SVM</strong> (ΔAUC = −0.103). Las otras cuatro significativas (árbol, bosque aleatorio, <em>gradient boosting</em>, Naive Bayes) tienen ΔAUC entre 0.0001 y 0.0018: estadísticamente reales,
+prácticamente irrelevantes.</p></li>
+<li><p><strong>Entre modelos, dentro de cada entorno (15 pares por entorno):</strong> aquí ocurre lo contrario. Los seis
+modelos difieren bastante entre sí en capacidad predictiva, así que <strong>14 de los 15 pares por entorno
+superan el margen de relevancia práctica</strong>; la única excepción es el bosque aleatorio frente al <em>gradient
+boosting</em> (el mejor par de cada entorno, ΔAUC ≈ 0.003–0.004: significativo, pero por debajo del margen de
+0.005). Es decir, distinguir <em>modelos</em> entre sí casi siempre importa en la práctica; distinguir el
+<em>mismo</em> modelo entre <em>motores</em> casi nunca importa, salvo por la SVM.</p></li>
+</ul>
+<p><strong>Conclusión:</strong> con 269 062 observaciones de prueba, la significancia estadística casi no distingue entre
+«el mismo modelo, dos motores» y «modelos distintos»: prácticamente todo resulta significativo. El <strong>margen de relevancia
+práctica</strong> es lo que separa lo que importa (las diferencias entre modelos, y la SVM entre motores) del
+ruido propio de un conjunto de datos grande (las diferencias mínimas del mismo modelo entre motores).</p>
+</section>
+<section id="diferencias-de-implementacion">
+<h2>Diferencias de implementación<a class="headerlink" href="#diferencias-de-implementacion" title="Permalink to this heading">#</a></h2>
+<ol class="arabic simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">LinearSVC(loss=&quot;hinge&quot;)</span></code> de scikit-learn converge a una solución degenerada (la diferencia más
+grande).</strong> Se investigó en detalle (sección 2.5): en un ajuste de diagnóstico con 700 000 filas, el
+<em>solver</em> dual de <code class="docutils literal notranslate"><span class="pre">liblinear</span></code> converge en 93 iteraciones, sin advertencias, a coeficientes ≈ 10⁻⁸ y un
+intercepto de −1.0, y el colapso se repite con los tres valores de <code class="docutils literal notranslate"><span class="pre">C</span></code> de la malla: predice «paga» para
+casi todo, sin separar clases. Es compatible con la solución degenerada de la SVM de pérdida <em>hinge</em>
+descrita por Rifkin, Pontil y Verri (1999) para clases solapadas y desbalanceadas, reforzada porque
+<code class="docutils literal notranslate"><span class="pre">liblinear</span></code> también regulariza el intercepto. El <code class="docutils literal notranslate"><span class="pre">LinearSVC</span></code> de PySpark no regulariza el intercepto y
+usa otro optimizador (OWL-QN; Andrew y Gao, 2007), que no muestra el mismo colapso y da un AUC débil
+pero real (0.60); ninguna de las dos diferencias se aisló por separado. No se cambió <code class="docutils literal notranslate"><span class="pre">loss</span></code> porque
+<code class="docutils literal notranslate"><span class="pre">hinge</span></code> es la pérdida que minimiza el <code class="docutils literal notranslate"><span class="pre">LinearSVC</span></code> de PySpark y la que hace comparables ambos modelos.</p></li>
+<li><p><strong>Discretización de los árboles (<code class="docutils literal notranslate"><span class="pre">maxBins</span></code>).</strong> PySpark corta cada variable continua en como máximo 32
+intervalos (<code class="docutils literal notranslate"><span class="pre">maxBins</span> <span class="pre">=</span> <span class="pre">32</span></code>, por defecto, reportado en los tres modelos de árbol); scikit-learn evalúa
+cortes <strong>exactos</strong>. Es una posible explicación de que el árbol de decisión y el bosque de scikit-learn
+tengan un AUC ligeramente mayor: pueden encontrar el punto de corte óptimo, mientras PySpark elige entre
+32 candidatos. El efecto es pequeño (ΔAUC ≤ 0.002) y no se aisló con un experimento aparte.</p></li>
+<li><p><strong>La relación <code class="docutils literal notranslate"><span class="pre">C</span> <span class="pre">=</span> <span class="pre">1</span> <span class="pre">/</span> <span class="pre">(regParam</span> <span class="pre">×</span> <span class="pre">n)</span></code></strong> entre scikit-learn y PySpark es <strong>aproximada</strong>: <code class="docutils literal notranslate"><span class="pre">C</span></code> pondera la
+suma de las pérdidas y <code class="docutils literal notranslate"><span class="pre">regParam</span></code> su promedio. Esto afecta a la regresión logística y a la SVM; para la
+logística el efecto fue mínimo (AUC casi idéntico), para la SVM quedó opacado por la solución degenerada del punto 1.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">NaiveBayes</span></code> gaussiano en ambos entornos</strong> evita el problema de valores negativos que tendrían las
+variantes multinomial/Bernoulli con datos escalados; el resultado es prácticamente idéntico entre
+motores (ΔAUC = 0.0001), como se esperaría de un modelo con una fórmula cerrada y sin optimización
+iterativa de por medio.</p></li>
+</ol>
+</section>
+<section id="concordancia-entre-las-tres-pruebas">
+<h2>Concordancia entre las tres pruebas<a class="headerlink" href="#concordancia-entre-las-tres-pruebas" title="Permalink to this heading">#</a></h2>
+<p><strong>Limitaciones de DeLong, la prueba principal:</strong></p>
+<ol class="arabic simple">
+<li><p>Solo mide la incertidumbre del <strong>muestreo del conjunto de prueba</strong>; no incluye la del entrenamiento (semillas,
+pliegues, modelos estocásticos como el bosque o el <em>boosting</em>).</p></li>
+<li><p>Supone observaciones <strong>independientes</strong> (préstamos de la misma época o estado comparten contexto).</p></li>
+<li><p>El AUC resume <strong>todos los umbrales</strong>, y puede no reflejar el umbral operativo elegido.</p></li>
+</ol>
+<p><strong>¿Coinciden DeLong, McNemar y el <em>bootstrap</em>?</strong> En general sí, con <strong>dos discrepancias</strong> entre
+DeLong y McNemar, y un patrón más disperso en el <em>bootstrap</em> de F1 y AUC-PR:</p>
+<ul class="simple">
+<li><p><strong>Regresión logística:</strong> DeLong dice que <strong>no</strong> hay diferencia significativa (p ajustado = 0.48,
+ΔAUC ≈ 0), y el <em>bootstrap</em> de AUC tampoco (coincide con DeLong, como debía). Pero <strong>McNemar sí encuentra
+una diferencia significativa</strong> (p ≈ 3×10⁻¹¹⁹) en las decisiones concretas (umbral fijo): de 269 062
+préstamos, 318 los acierta solo scikit-learn y 1237 solo PySpark. Los dos modelos ordenan los préstamos
+casi igual, por eso el AUC no distingue, pero como cada uno usa un umbral ligeramente
+distinto (0.2042 en scikit-learn frente a 0.2061 en PySpark, elegidos por separado con F1 fuera de
+pliegue), <strong>clasifican de forma algo distinta a los préstamos que quedan cerca del umbral</strong>. Es
+precisamente la limitación 3 de DeLong: resume todos los umbrales y no ve esto. Como ambos umbrales provienen de
+mallas discretas, parte de esa diferencia puede deberse a la resolución de la malla y no a los modelos.</p></li>
+<li><p><strong>Árbol de decisión:</strong> al revés. <strong>DeLong sí</strong> encuentra diferencia significativa (p ajustado = 0.003) y
+<strong>McNemar no</strong> (p = 0.058, con Holm). El AUC del árbol de scikit-learn es algo mayor de forma consistente
+en todo el rango de umbrales (por los cortes exactos, sección anterior), pero en el umbral operativo
+concreto las decisiones no difieren lo suficiente para que McNemar lo detecte.</p></li>
+<li><p><strong>El <em>bootstrap</em> de AUC coincide con DeLong en las seis comparaciones entre entornos:</strong> ambas pruebas
+miden lo mismo (el AUC) con métodos distintos (asintótico vs. remuestreo). Que coincidan es evidencia de
+que ninguna de las dos está fallando.</p></li>
+<li><p><strong>El <em>bootstrap</em> de AUC-PR y F1 no siempre coinciden entre sí, ni con el AUC.</strong> De los seis modelos, el
+F1 no resulta significativo en cuatro (regresión logística, árbol, <em>gradient boosting</em>, Naive Bayes) y el
+AUC-PR no resulta significativo en dos, pero <strong>no los mismos dos</strong>: regresión logística y bosque aleatorio.
+La SVM es el único modelo en el que las tres métricas (AUC, AUC-PR y F1) coinciden en ser
+significativas. Esto es consistente con que F1 y AUC-PR dependen del umbral y de la clase minoritaria de
+forma distinta al AUC: no hay razón para esperar que las tres métricas siempre estén de acuerdo.</p></li>
+</ul>
+<p><strong>En conjunto:</strong> las tres pruebas coinciden en lo más importante (la SVM es la única diferencia grande y
+consistente en las tres métricas); donde discrepan, la razón siempre fue identificable (umbral vs. orden
+completo, o sensibilidad distinta a la clase minoritaria), no un error de las pruebas.</p>
+</section>
+<section id="escalabilidad">
+<h2>Escalabilidad<a class="headerlink" href="#escalabilidad" title="Permalink to this heading">#</a></h2>
+<p><strong>En el equipo utilizado, en ninguno de los volúmenes probados</strong>, ni con las 400 particiones de la sesión ni con
+una variante de 12, PySpark llegó a superar a scikit-learn. Se ajustó un bosque fijo (50 árboles,
+profundidad 10) con 10 000 hasta 1 076 248 filas:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Versión</p></th>
+<th class="head"><p>Costo fijo</p></th>
+<th class="head"><p>Costo por millón de filas</p></th>
+<th class="head"><p>Con el entrenamiento completo</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>scikit-learn</p></td>
+<td><p>≈ 0 s</p></td>
+<td><p>≈ 15 s</p></td>
+<td><p>16 s</p></td>
+</tr>
+<tr class="row-odd"><td><p>PySpark, 400 particiones (capítulo 3)</p></td>
+<td><p>≈ 170 s</p></td>
+<td><p>≈ 86 s</p></td>
+<td><p>258 s</p></td>
+</tr>
+<tr class="row-even"><td><p>PySpark, 12 particiones (variante)</p></td>
+<td><p>≈ 12 s</p></td>
+<td><p>≈ 54 s</p></td>
+<td><p>69 s</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>El <strong>costo por fila</strong> de Spark es mayor que el de scikit-learn en ambas configuraciones: las rectas de
+tiempo <strong>no se cruzan</strong>, ni medido ni extrapolando linealmente. La pregunta solo tendría una respuesta real
+en dos situaciones que este trabajo no puede probar: <strong>(a)</strong> datos que no caben en la RAM de una máquina
+(scikit-learn requeriría estrategias fuera de memoria) o <strong>(b)</strong> un <strong>clúster</strong> con muchos nodos, donde el trabajo sí se
+reparte entre máquinas. Cualquier cifra concreta de «cruce» para esos casos sería especulación.</p>
+</section>
+<section id="interpretabilidad">
+<h2>Interpretabilidad<a class="headerlink" href="#interpretabilidad" title="Permalink to this heading">#</a></h2>
+<p><strong>Qué aporta LIME.</strong> Se explicaron los <strong>mismos dos préstamos</strong> con el mejor modelo de probabilidades de
+cada entorno (<em>gradient boosting</em> en los dos):</p>
+<ul class="simple">
+<li><p><strong>Falso negativo</strong> (préstamo 36099806, incumplió; ambos modelos daban ≈ 0.02 de probabilidad): las
+variables que más empujaban hacia «paga» fueron consistentes entre los dos entornos.</p></li>
+<li><p><strong>Falso positivo</strong> (préstamo 55961482, se pagó; ambos modelos daban ≈ 0.83–0.86): igual, coherencia entre
+entornos en las variables principales.</p></li>
+<li><p>Promediando 60 explicaciones, cuatro de las cinco variables más influyentes (<code class="docutils literal notranslate"><span class="pre">int_rate</span></code>, <code class="docutils literal notranslate"><span class="pre">term_months</span></code>,
+<code class="docutils literal notranslate"><span class="pre">fico_range_high</span></code> y <code class="docutils literal notranslate"><span class="pre">dti</span></code>) coinciden con las cinco principales de la importancia por permutación del
+bosque aleatorio, calculada de forma independiente, aunque el orden difiere.</p></li>
+</ul>
+<p><strong>Sus límites (medidos en este trabajo):</strong></p>
+<ol class="arabic simple">
+<li><p><strong>Fidelidad parcial:</strong> el R² del modelo lineal local no es 1 (entre 0.50 y 0.58 en scikit-learn, entre
+0.51 y 0.55 en PySpark, según el préstamo): la explicación imita al modelo solo en parte.</p></li>
+<li><p><strong>Estabilidad frente a la semilla:</strong> para el falso negativo, se repitió la explicación con 5 semillas
+distintas y las 5 principales variables salieron <strong>exactamente en el mismo orden</strong> las cinco veces. Es
+una sola instancia y cinco repeticiones, así que no prueba que LIME sea siempre estable aquí; solo que,
+en este caso concreto, la aleatoriedad del muestreo no cambió la conclusión.</p></li>
+<li><p><strong>Perturbaciones sin correlaciones:</strong> LIME muestrea cada variable por separado, puede crear préstamos
+imposibles (p. ej. tasa muy baja con FICO muy bajo), sobre los que el modelo nunca fue entrenado.</p></li>
+<li><p><strong>En PySpark, LIME opera en memoria local</strong> y llama al modelo miles de veces. Con Apache Arrow, cada
+llamada del modelo final de Spark tardó ≈ 0.5 s con 5 000 filas: viable para explicar unas pocas
+instancias, no millones.</p></li>
+<li><p><strong>Sin Arrow, una llamada tardaba ≈ 8 minutos</strong> en una ejecución preliminar (400 particiones): con esa
+latencia, LIME sería inviable en la práctica. Se comprobó que la causa era el envío del lote sin Arrow,
+no el tamaño del modelo (capítulo 3b).</p></li>
+<li><p><strong>Datos de referencia locales:</strong> LIME necesita traer una muestra al <em>driver</em> (aquí, filas de
+entrenamiento) para conocer las distribuciones, lo que va en contra de la idea de no mover el conjunto de datos
+completo al <em>driver</em>.</p></li>
+</ol>
+</section>
+<section id="efecto-de-la-configuracion-de-spark">
+<h2>Efecto de la configuración de Spark<a class="headerlink" href="#efecto-de-la-configuracion-de-spark" title="Permalink to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Elemento de la configuración</p></th>
+<th class="head"><p>Efecto medido</p></th>
+<th class="head"><p>Evidencia</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Conjunto de datos completo, sin muestreo</strong></p></td>
+<td><p>Ayuda a Spark relativamente (el costo por fila pesa más que el fijo a mayor volumen) pero no basta: Spark sigue siendo más lento con el conjunto completo</p></td>
+<td><p>3b.5, 6.4</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Los mismos seis modelos y espacios de búsqueda en ambos entornos</strong></p></td>
+<td><p>Permite la comparación pareada (DeLong); reveló la falla de la SVM de scikit-learn, invisible si solo se hubiera probado un modelo</p></td>
+<td><p>2, 3, 5</p></td>
+</tr>
+<tr class="row-even"><td><p><strong><code class="docutils literal notranslate"><span class="pre">ParamGridBuilder</span></code> + <code class="docutils literal notranslate"><span class="pre">CrossValidator</span></code>, sin bucles manuales</strong></p></td>
+<td><p>Reproducible y correcto, pero es la etapa más costosa: sola representa la mayoría del tiempo total de Spark</p></td>
+<td><p>6.3</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong><code class="docutils literal notranslate"><span class="pre">numFolds</span> <span class="pre">=</span> <span class="pre">3</span></code> (igual que scikit-learn)</strong></p></td>
+<td><p>Cuesta ≈ 1.4× más que 2 pliegues; con <code class="docutils literal notranslate"><span class="pre">foldCol</span></code>, hace que la selección de hiperparámetros use exactamente los mismos pliegues que scikit-learn</p></td>
+<td><p>3b.4</p></td>
+</tr>
+<tr class="row-even"><td><p><strong><code class="docutils literal notranslate"><span class="pre">spark.default.parallelism</span></code> / <code class="docutils literal notranslate"><span class="pre">shuffle.partitions</span> <span class="pre">=</span> <span class="pre">400</span></code></strong></p></td>
+<td><p><strong>Empeoró</strong> el rendimiento en el equipo utilizado: ≈ 9.4× más lento que con 12 particiones (las de los hilos reales)</p></td>
+<td><p>3b.4</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong><code class="docutils literal notranslate"><span class="pre">spark.executor.memory</span> <span class="pre">=</span> <span class="pre">8g</span></code></strong></p></td>
+<td><p><strong>Sin efecto en modo local</strong>: no hay ejecutores separados; cuenta <code class="docutils literal notranslate"><span class="pre">spark.driver.memory</span></code></p></td>
+<td><p>3.1</p></td>
+</tr>
+<tr class="row-even"><td><p><strong><code class="docutils literal notranslate"><span class="pre">spark.driver.memory</span></code>, <code class="docutils literal notranslate"><span class="pre">memory.fraction</span></code>, <code class="docutils literal notranslate"><span class="pre">storageFraction</span></code></strong></p></td>
+<td><p>Fijan el límite real de memoria (el heap verificado fue 8.6 GB); no se aislaron con experimentos separados</p></td>
+<td><p>3.1</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Caché (<code class="docutils literal notranslate"><span class="pre">.persist()</span></code>) tras el <code class="docutils literal notranslate"><span class="pre">VectorAssembler</span></code></strong></p></td>
+<td><p>Reduce el tiempo de un ajuste ≈ 1.35×; con el <code class="docutils literal notranslate"><span class="pre">CrossValidator</span></code>, que reutiliza los datos decenas de veces, el ahorro acumulado es mayor</p></td>
+<td><p>3b.4</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Ninguna transferencia de datos al driver antes de entrenar</strong></p></td>
+<td><p>Solo se transfirieron agregados diminutos (conteos por categoría, sumas para el umbral); la única transferencia grande (id, etiqueta, puntuación del conjunto de prueba) ocurrió <strong>después</strong> de entrenar y se midió aparte (&lt; 10 s en total para los seis modelos)</p></td>
+<td><p>3, 6.3</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="conclusiones">
+<h2>Conclusiones<a class="headerlink" href="#conclusiones" title="Permalink to this heading">#</a></h2>
+<ol class="arabic simple">
+<li><p>Con implementaciones equivalentes, la misma partición y los mismos pliegues, scikit-learn y PySpark
+producen modelos de calidad prácticamente idéntica: en cinco de los seis modelos, las diferencias de
+AUC entre motores (≤ 0.0018) son detectables con 269 062 observaciones de prueba, pero quedan muy por
+debajo del margen de relevancia práctica.</p></li>
+<li><p>La única diferencia relevante entre motores es la de la SVM lineal (ΔAUC = −0.103), atribuible a la
+solución degenerada de la pérdida <em>hinge</em> en <code class="docutils literal notranslate"><span class="pre">liblinear</span></code> y no a una ventaja general de uno de los
+motores.</p></li>
+<li><p>Entre modelos, en cambio, casi todas las diferencias son relevantes. El <em>gradient boosting</em> es el mejor
+en ambos entornos (AUC ≈ 0.72), seguido del bosque aleatorio, del que no se distingue en la práctica.</p></li>
+<li><p>En una sola máquina de 12 hilos, scikit-learn es ≈ 17 veces más rápido. El mayor volumen reduce la
+brecha, pero el costo por fila de Spark sigue siendo mayor, así que no hay un punto de cruce en el
+equipo utilizado; la ventaja de Spark queda reservada a datos que no caben en memoria o a un clúster.</p></li>
+<li><p>LIME produce explicaciones coherentes entre motores para los mismos préstamos, pero con fidelidad local
+moderada (R² entre 0.50 y 0.58) y un costo por llamada en Spark que lo limita a unas pocas instancias.</p></li>
+<li><p>La información disponible al otorgar un préstamo predice el incumplimiento solo moderadamente, y una
+parte importante de ella proviene de la tasa de interés que asigna la propia plataforma.</p></li>
+</ol>
+</section>
+<section id="alcance-de-las-conclusiones">
+<h2>Alcance de las conclusiones<a class="headerlink" href="#alcance-de-las-conclusiones" title="Permalink to this heading">#</a></h2>
+<p>Los resultados de este trabajo no permiten afirmar:</p>
+<ul class="simple">
+<li><p>Que Spark sea «más lento que scikit-learn» en general: solo que lo fue <strong>aquí</strong>, en una máquina con 12
+hilos y 16 GB, con estos datos y esta configuración de sesión.</p></li>
+<li><p>Nada sobre el desempeño en un clúster real.</p></li>
+<li><p>El efecto individual de <code class="docutils literal notranslate"><span class="pre">spark.memory.fraction</span></code> y <code class="docutils literal notranslate"><span class="pre">storageFraction</span></code> (no se aislaron).</p></li>
+<li><p>Que el AUC ≈ 0.72 del <em>gradient boosting</em> sea el máximo alcanzable con estos datos.</p></li>
+<li><p>Por qué exactamente <code class="docutils literal notranslate"><span class="pre">maxBins</span> <span class="pre">=</span> <span class="pre">32</span></code> produce el ΔAUC observado en los árboles: es la explicación más
+plausible, pero no se aisló con un experimento que solo cambiara <code class="docutils literal notranslate"><span class="pre">maxBins</span></code>.</p></li>
+</ul>
+</section>
+<section id="referencias">
+<h2>Referencias<a class="headerlink" href="#referencias" title="Permalink to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Andrew, G. y Gao, J. (2007). Scalable training of L1-regularized log-linear models. En <em>Proceedings of the 24th International Conference on Machine Learning (ICML)</em>, 33–40.</p></li>
+<li><p>Bergmeir, C. y Benítez, J. M. (2012). On the use of cross-validation for time series predictor evaluation. <em>Information Sciences</em>, 191, 192–213.</p></li>
+<li><p>Cohen, J. (1988). <em>Statistical Power Analysis for the Behavioral Sciences</em> (2.ª ed.). Lawrence Erlbaum.</p></li>
+<li><p>DeLong, E. R., DeLong, D. M. y Clarke-Pearson, D. L. (1988). Comparing the areas under two or more correlated receiver operating characteristic curves: a nonparametric approach. <em>Biometrics</em>, 44(3), 837–845.</p></li>
+<li><p>Dietterich, T. G. (1998). Approximate statistical tests for comparing supervised classification learning algorithms. <em>Neural Computation</em>, 10(7), 1895–1923.</p></li>
+<li><p>Efron, B. y Tibshirani, R. J. (1993). <em>An Introduction to the Bootstrap</em>. Chapman &amp; Hall.</p></li>
+<li><p>Fan, R.-E., Chang, K.-W., Hsieh, C.-J., Wang, X.-R. y Lin, C.-J. (2008). LIBLINEAR: A library for large linear classification. <em>Journal of Machine Learning Research</em>, 9, 1871–1874.</p></li>
+<li><p>Holm, S. (1979). A simple sequentially rejective multiple test procedure. <em>Scandinavian Journal of Statistics</em>, 6(2), 65–70.</p></li>
+<li><p>Lundberg, S. M., Erion, G., Chen, H., DeGrave, A., Prutkin, J. M., Nair, B., Katz, R., Himmelfarb, J., Bansal, N. y Lee, S.-I. (2020). From local explanations to global understanding with explainable AI for trees. <em>Nature Machine Intelligence</em>, 2, 56–67.</p></li>
+<li><p>McNemar, Q. (1947). Note on the sampling error of the difference between correlated proportions or percentages. <em>Psychometrika</em>, 12(2), 153–157.</p></li>
+<li><p>Meng, X. <em>et al.</em> (2016). MLlib: Machine learning in Apache Spark. <em>Journal of Machine Learning Research</em>, 17(34), 1–7.</p></li>
+<li><p>Pedregosa, F. <em>et al.</em> (2011). Scikit-learn: Machine learning in Python. <em>Journal of Machine Learning Research</em>, 12, 2825–2830.</p></li>
+<li><p>Ribeiro, M. T., Singh, S. y Guestrin, C. (2016). «Why should I trust you?»: Explaining the predictions of any classifier. En <em>Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining</em>, 1135–1144.</p></li>
+<li><p>Rifkin, R., Pontil, M. y Verri, A. (1999). A note on support vector machine degeneracy. En <em>Algorithmic Learning Theory (ALT 1999)</em>, Lecture Notes in Computer Science 1720, 252–263. Springer.</p></li>
+<li><p>Sun, X. y Xu, W. (2014). Fast implementation of DeLong’s algorithm for comparing the areas under correlated receiver operating characteristic curves. <em>IEEE Signal Processing Letters</em>, 21(11), 1389–1393.</p></li>
+</ul>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./."
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="notebooks/06_comparacion.html"
+       title="página anterior">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">anterior</p>
+        <p class="prev-next-title">6 · Comparación de resultados: métricas, tiempos y volumen</p>
+      </div>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contenido
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#costo-computacional">Costo computacional</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#equivalencia-predictiva">Equivalencia predictiva</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#significancia-frente-a-relevancia">Significancia frente a relevancia</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#diferencias-de-implementacion">Diferencias de implementación</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#concordancia-entre-las-tres-pruebas">Concordancia entre las tres pruebas</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#escalabilidad">Escalabilidad</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#interpretabilidad">Interpretabilidad</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#efecto-de-la-configuracion-de-spark">Efecto de la configuración de Spark</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#conclusiones">Conclusiones</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#alcance-de-las-conclusiones">Alcance de las conclusiones</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#referencias">Referencias</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+Por Ana Galván Arias, Valeria Oñate López, María José Ruiz Arias
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2026.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

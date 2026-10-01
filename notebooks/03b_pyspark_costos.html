@@ -1,0 +1,1246 @@
+
+
+<!DOCTYPE html>
+
+
+<html lang="es" data-content_root="" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>3b · Costos de PySpark: latencia de predicción y efecto de la configuración &#8212; Incumplimiento de préstamos en Lending Club: scikit-learn frente a PySpark</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" href="../_static/styles/sphinx-book-theme.css?digest=14f4ca6b54d191a8c7657f6c759bf11a5fb86285" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-thebe.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/design-style.4045f2051d55cab465a707391d5b2007.min.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?digest=5a5c038af52cf7bc1a1ec88eea08e6366ee68824"></script>
+    <script>let toggleHintShow = 'Haz clic para mostrar';</script>
+    <script>let toggleHintHide = 'Haz clic para ocultar';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js"></script>
+    <script src="../_static/translations.js"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../_static/design-tabs.js"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"
+const thebe_selector = ".thebe,.cell"
+const thebe_selector_input = "pre"
+const thebe_selector_output = ".output, .cell_output"
+</script>
+    <script async="async" src="../_static/sphinx-thebe.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'notebooks/03b_pyspark_costos';</script>
+    <link rel="index" title="Índice" href="../genindex.html" />
+    <link rel="search" title="Búsqueda" href="../search.html" />
+    <link rel="next" title="3c · PySpark con el paralelismo ajustado al equipo (análisis de sensibilidad)" href="03c_pyspark_escala_ajustada.html" />
+    <link rel="prev" title="3 · Preprocesamiento y modelado con PySpark (seis modelos)" href="03_pyspark_seis_modelos.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="es"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Saltar al contenido principal</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Volver arriba</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Advertencia de versión"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../intro.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Incumplimiento de préstamos en Lending Club: scikit-learn frente a PySpark</p>
+  
+</a></div>
+        <div class="sidebar-primary-item"><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../intro.html">
+                    Incumplimiento de préstamos en Lending Club: scikit-learn frente a PySpark
+                </a>
+            </li>
+        </ul>
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="01_eda.html">1 · Análisis exploratorio de datos (EDA)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="02_sklearn_seis_modelos.html">2 · Preprocesamiento y modelado con scikit-learn (seis modelos)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="03_pyspark_seis_modelos.html">3 · Preprocesamiento y modelado con PySpark (seis modelos)</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">3b · Costos de PySpark: latencia de predicción y efecto de la configuración</a></li>
+<li class="toctree-l1"><a class="reference internal" href="03c_pyspark_escala_ajustada.html">3c · PySpark con el paralelismo ajustado al equipo (análisis de sensibilidad)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="04_lime.html">4 · Interpretabilidad con LIME</a></li>
+<li class="toctree-l1"><a class="reference internal" href="05_estadistica.html">5 · Comparación estadística de los modelos: DeLong, McNemar y bootstrap pareado</a></li>
+<li class="toctree-l1"><a class="reference internal" href="06_comparacion.html">6 · Comparación de resultados: métricas, tiempos y volumen</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reflexion.html">Discusión y conclusiones</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><label class="sidebar-toggle primary-toggle btn btn-sm" for="__primary" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</label></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+<a href="https://github.com/anagalvan7/lending-club-jbook" target="_blank"
+   class="btn btn-sm btn-source-repository-button"
+   title="Repositorio de origen"
+   data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+
+</a>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Descarga esta pagina">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/notebooks/03b_pyspark_costos.ipynb" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Descargar archivo fuente"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.ipynb</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Imprimir en PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Modo de pantalla completa"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="claro/oscuro" aria-label="claro/oscuro" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Búsqueda" aria-label="Búsqueda" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<label class="sidebar-toggle secondary-toggle btn btn-sm" for="__secondary"title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</label>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>3b · Costos de PySpark: latencia de predicción y efecto de la configuración</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contenido </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#b-1-sesion-y-datos">3b.1 Sesión y datos</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#b-2-el-sintoma-una-prediccion-con-el-bosque-final-tardaba-8-minutos">3b.2 El síntoma: una predicción con el bosque final tardaba ≈ 8 minutos</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#b-3-dos-costos-por-separado">3b.3 Dos costos por separado</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#a-enviar-el-lote-a-spark-createdataframe-desde-pandas">(a) Enviar el lote a Spark (<code class="docutils literal notranslate"><span class="pre">createDataFrame</span></code> desde pandas)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#b-enviar-el-modelo-a-las-tareas">(b) Enviar el modelo a las tareas</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#b-4-que-efecto-tuvo-cada-elemento-de-la-configuracion-micro-benchmarks">3b.4 ¿Qué efecto tuvo cada elemento de la configuración? (micro-<em>benchmarks</em>)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#b-5-experimento-de-escala-mismo-bosque-fijo-que-en-scikit-learn">3b.5 Experimento de escala (mismo bosque fijo que en scikit-learn)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#b-6-guardar-y-cerrar">3b.6 Guardar y cerrar</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="b-costos-de-pyspark-latencia-de-prediccion-y-efecto-de-la-configuracion">
+<h1>3b · Costos de PySpark: latencia de predicción y efecto de la configuración<a class="headerlink" href="#b-costos-de-pyspark-latencia-de-prediccion-y-efecto-de-la-configuracion" title="Permalink to this heading">#</a></h1>
+<p>El capítulo 3 entrenó y evaluó los seis modelos. Aquí se hacen las <strong>pruebas de costo</strong> que sustentan
+la discusión sobre el desempeño de Spark:</p>
+<ol class="arabic simple">
+<li><p><strong>Latencia de predicción</strong> desde Python y qué implica para LIME (¿por qué tardaba ≈ 8 minutos
+una predicción en una ejecución preliminar?).</p></li>
+<li><p><strong>Efecto de cada elemento de la configuración</strong> (caché, particiones, pliegues del <code class="docutils literal notranslate"><span class="pre">CrossValidator</span></code>).</p></li>
+<li><p><strong>Experimento de escala</strong>: ¿desde qué volumen conviene Spark?</p></li>
+</ol>
+<div class="admonition note">
+<p class="admonition-title">Nota</p>
+<p>Este capítulo corre en una <strong>sesión nueva</strong> (misma configuración del capítulo 3): las pruebas se
+hacen con <strong>bosques pequeños</strong> entrenados aquí, no con el bosque final de 100 árboles y
+profundidad 15. En 3b.2 se describe por qué, en una <strong>ejecución preliminar</strong> de este trabajo (sin
+Apache Arrow), una sola predicción tardaba ≈ 8 minutos, y en 3b.3 se comprueba. La sesión definitiva del
+capítulo 3 ya usa Arrow.</p>
+</div>
+<div class="cell tag_hide-input docutils container">
+<details class="hide above-input">
+<summary aria-label="Toggle hidden content">
+<span class="collapsed">Mostrar el código</span>
+<span class="expanded">Ocultar el código</span>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">platform</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">seaborn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">sns</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">IPython.display</span><span class="w"> </span><span class="kn">import</span> <span class="n">display</span>
+
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span><span class="p">))</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src</span><span class="w"> </span><span class="kn">import</span> <span class="n">lc_spark</span> <span class="k">as</span> <span class="n">lcs</span>  <span class="c1"># noqa: E402</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src</span><span class="w"> </span><span class="kn">import</span> <span class="n">lc_utils</span> <span class="k">as</span> <span class="n">lc</span>  <span class="c1"># noqa: E402</span>
+
+<span class="n">lcs</span><span class="o">.</span><span class="n">configure_java</span><span class="p">()</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pyspark</span>  <span class="c1"># noqa: E402</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyspark</span><span class="w"> </span><span class="kn">import</span> <span class="n">StorageLevel</span>  <span class="c1"># noqa: E402</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyspark.ml.classification</span><span class="w"> </span><span class="kn">import</span> <span class="n">RandomForestClassifier</span>  <span class="c1"># noqa: E402</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyspark.ml.evaluation</span><span class="w"> </span><span class="kn">import</span> <span class="n">BinaryClassificationEvaluator</span>  <span class="c1"># noqa: E402</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyspark.ml.functions</span><span class="w"> </span><span class="kn">import</span> <span class="n">vector_to_array</span>  <span class="c1"># noqa: E402</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyspark.ml.tuning</span><span class="w"> </span><span class="kn">import</span> <span class="n">CrossValidator</span><span class="p">,</span> <span class="n">ParamGridBuilder</span>  <span class="c1"># noqa: E402</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyspark.sql</span><span class="w"> </span><span class="kn">import</span> <span class="n">functions</span> <span class="k">as</span> <span class="n">F</span>  <span class="c1"># noqa: E402</span>
+
+<span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">"ignore"</span><span class="p">,</span> <span class="n">category</span><span class="o">=</span><span class="ne">FutureWarning</span><span class="p">)</span>
+<span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s2">"display.width"</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+<span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s2">"display.float_format"</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">v</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">v</span><span class="si">:</span><span class="s2">,.4f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="n">sns</span><span class="o">.</span><span class="n">set_theme</span><span class="p">(</span><span class="n">style</span><span class="o">=</span><span class="s2">"whitegrid"</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="s2">"notebook"</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">"figure.dpi"</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span> <span class="s2">"axes.titleweight"</span><span class="p">:</span> <span class="s2">"bold"</span><span class="p">})</span>
+<span class="n">RESULTS</span><span class="p">,</span> <span class="n">DATA_DIR</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"../resultados"</span><span class="p">),</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"../data"</span><span class="p">)</span>
+<span class="n">MAXMEM</span> <span class="o">=</span> <span class="mi">64</span>
+<span class="n">ESTADO</span> <span class="o">=</span> <span class="p">{}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">guardar</span><span class="p">():</span>
+    <span class="p">(</span><span class="n">RESULTS</span> <span class="o">/</span> <span class="s2">"spark_costos.json"</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">ESTADO</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
+
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Python </span><span class="si">{</span><span class="n">platform</span><span class="o">.</span><span class="n">python_version</span><span class="p">()</span><span class="si">}</span><span class="s2"> · PySpark </span><span class="si">{</span><span class="n">pyspark</span><span class="o">.</span><span class="n">__version__</span><span class="si">}</span><span class="s2"> · </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span><span class="si">}</span><span class="s2"> hilos lógicos"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</details>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Python 3.10.21 · PySpark 3.5.9 · 12 hilos lógicos
+</pre></div>
+</div>
+</div>
+</div>
+<section id="b-1-sesion-y-datos">
+<h2>3b.1 Sesión y datos<a class="headerlink" href="#b-1-sesion-y-datos" title="Permalink to this heading">#</a></h2>
+<p>Misma configuración de sesión del capítulo 3 (con <strong>Arrow desactivado al inicio</strong>, para medir su efecto) y los
+mismos datos, preparados y <strong>cacheados</strong>.</p>
+<div class="cell tag_hide-input docutils container">
+<details class="hide above-input">
+<summary aria-label="Toggle hidden content">
+<span class="collapsed">Mostrar el código</span>
+<span class="expanded">Ocultar el código</span>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="n">spark</span> <span class="o">=</span> <span class="n">lcs</span><span class="o">.</span><span class="n">start_session</span><span class="p">()</span>
+<span class="n">train_f</span><span class="p">,</span> <span class="n">test_f</span><span class="p">,</span> <span class="n">prep_model</span><span class="p">,</span> <span class="n">keep</span><span class="p">,</span> <span class="n">to_model_input</span><span class="p">,</span> <span class="n">feat</span><span class="p">,</span> <span class="n">train_raw</span> <span class="o">=</span> <span class="n">lcs</span><span class="o">.</span><span class="n">prepare</span><span class="p">(</span><span class="n">spark</span><span class="p">,</span> <span class="n">DATA_DIR</span><span class="p">)</span>
+<span class="n">n_train_f</span><span class="p">,</span> <span class="n">n_test_f</span> <span class="o">=</span> <span class="n">train_f</span><span class="o">.</span><span class="n">count</span><span class="p">(),</span> <span class="n">test_f</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Sesión y datos listos en </span><span class="si">{</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">t0</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> s · train </span><span class="si">{</span><span class="n">n_train_f</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> · test </span><span class="si">{</span><span class="n">n_test_f</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> · "</span>
+      <span class="sa">f</span><span class="s2">"particiones de train_f: </span><span class="si">{</span><span class="n">train_f</span><span class="o">.</span><span class="n">rdd</span><span class="o">.</span><span class="n">getNumPartitions</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="n">evaluador</span> <span class="o">=</span> <span class="n">BinaryClassificationEvaluator</span><span class="p">(</span><span class="n">labelCol</span><span class="o">=</span><span class="s2">"default"</span><span class="p">,</span> <span class="n">rawPredictionCol</span><span class="o">=</span><span class="s2">"rawPrediction"</span><span class="p">,</span> <span class="n">metricName</span><span class="o">=</span><span class="s2">"areaUnderROC"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">pred_con</span><span class="p">(</span><span class="n">modelo</span><span class="p">,</span> <span class="n">df</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Aplica un modelo con pocas tareas simultáneas (cada tarea recibe una copia del modelo)."""</span>
+    <span class="k">return</span> <span class="n">modelo</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">coalesce</span><span class="p">(</span><span class="n">n</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+</details>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Sesión y datos listos en 123 s · train 1,076,248 · test 269,062 · particiones de train_f: 400
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="b-2-el-sintoma-una-prediccion-con-el-bosque-final-tardaba-8-minutos">
+<h2>3b.2 El síntoma: una predicción con el bosque final tardaba ≈ 8 minutos<a class="headerlink" href="#b-2-el-sintoma-una-prediccion-con-el-bosque-final-tardaba-8-minutos" title="Permalink to this heading">#</a></h2>
+<p>En una ejecución preliminar de este trabajo (sin Arrow) se intentó medir la latencia con el <strong>bosque final</strong> (100 árboles,
+profundidad 15). La interfaz de Spark registró el tiempo de cada llamada
+(<code class="docutils literal notranslate"><span class="pre">resultados/spark_ui_llamadas_bosque_final.json</span></code>, copiado de la interfaz web de Spark). El bosque
+tiene millones de nodos, así que la primera hipótesis fue que el costo estuviera en el modelo: que
+cada llamada tuviera que serializarlo y enviarlo a las tareas. La prueba de 3b.3 no respalda esa
+hipótesis, aunque sin repetir la medición con el bosque final (ver el límite señalado en 3b.3).
+(La correspondencia entre cada llamada y su tamaño de lote se deduce del orden en que el código las
+ejecutaba: cinco llamadas con 1 fila y luego las primeras con 100; la ejecución se interrumpió allí.) Como estos
+tiempos se transcribieron de la interfaz web de Spark, se presentan como una observación preliminar y no
+como una medición controlada.</p>
+<div class="cell tag_hide-input docutils container">
+<details class="hide above-input">
+<summary aria-label="Toggle hidden content">
+<span class="collapsed">Mostrar el código</span>
+<span class="expanded">Ocultar el código</span>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ui</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">((</span><span class="n">RESULTS</span> <span class="o">/</span> <span class="s2">"spark_ui_llamadas_bosque_final.json"</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">())</span>
+<span class="n">ui</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">ui</span><span class="p">)</span>
+<span class="n">display</span><span class="p">(</span><span class="n">ui</span><span class="p">[[</span><span class="s2">"filas por llamada"</span><span class="p">,</span> <span class="s2">"segundos"</span><span class="p">]]</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">"segundos"</span><span class="p">:</span> <span class="s2">"tiempo de la llamada (s)"</span><span class="p">}))</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Mediana de las </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">ui</span><span class="p">)</span><span class="si">}</span><span class="s2"> llamadas: </span><span class="si">{</span><span class="n">ui</span><span class="p">[</span><span class="s1">'segundos'</span><span class="p">]</span><span class="o">.</span><span class="n">median</span><span class="p">()</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> s = </span><span class="si">{</span><span class="n">ui</span><span class="p">[</span><span class="s1">'segundos'</span><span class="p">]</span><span class="o">.</span><span class="n">median</span><span class="p">()</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">60</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> min "</span>
+      <span class="sa">f</span><span class="s2">"(scikit-learn: </span><span class="si">{</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">((</span><span class="n">RESULTS</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="s1">'sk_resultados.json'</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">())[</span><span class="s1">'latencia_predict_s'</span><span class="p">][</span><span class="s1">'1'</span><span class="p">]</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1000</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> ms para 1 fila)"</span><span class="p">)</span>
+<span class="n">ESTADO</span><span class="p">[</span><span class="s2">"latencia_bosque_final_mediana_s"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">ui</span><span class="p">[</span><span class="s2">"segundos"</span><span class="p">]</span><span class="o">.</span><span class="n">median</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+</details>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>filas por llamada</th>
+      <th>tiempo de la llamada (s)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>1</td>
+      <td>535.6000</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>1</td>
+      <td>476.2000</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>1</td>
+      <td>468.7000</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>1</td>
+      <td>465.1000</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>1</td>
+      <td>462.9000</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>100</td>
+      <td>467.8000</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>100</td>
+      <td>469.5000</td>
+    </tr>
+  </tbody>
+</table>
+</div></div><div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Mediana de las 7 llamadas: 469 s = 7.8 min (scikit-learn: 0.2 ms para 1 fila)
+</pre></div>
+</div>
+</div>
+</div>
+<p>El tiempo es <strong>igual</strong> para 1 fila o para 100: no depende de cuántos préstamos se
+predicen, sino de un <strong>sobrecosto fijo elevado por llamada</strong>. Como LIME necesita al menos una llamada por
+explicación, con esa configuración explicar <strong>un solo préstamo</strong> costaría ≈ 8 minutos (frente a
+fracciones de segundo con scikit-learn). Hay dos causas posibles y se miden <strong>por separado</strong>:
+(a) el costo de <strong>enviar el lote</strong> a Spark y (b) el costo de <strong>enviar el modelo</strong> a las tareas.</p>
+</section>
+<section id="b-3-dos-costos-por-separado">
+<h2>3b.3 Dos costos por separado<a class="headerlink" href="#b-3-dos-costos-por-separado" title="Permalink to this heading">#</a></h2>
+<section id="a-enviar-el-lote-a-spark-createdataframe-desde-pandas">
+<h3>(a) Enviar el lote a Spark (<code class="docutils literal notranslate"><span class="pre">createDataFrame</span></code> desde pandas)<a class="headerlink" href="#a-enviar-el-lote-a-spark-createdataframe-desde-pandas" title="Permalink to this heading">#</a></h3>
+<p>Con <code class="docutils literal notranslate"><span class="pre">spark.default.parallelism</span> <span class="pre">=</span> <span class="pre">400</span></code> (fijado en la sesión), <code class="docutils literal notranslate"><span class="pre">createDataFrame</span></code> reparte incluso un lote
+diminuto en hasta 400 particiones, y cada partición arranca un proceso de Python (operación especialmente lenta en Windows).
+Se mide con y sin <strong>Apache Arrow</strong> (transferencia en bloques). Sin Arrow se hace <strong>una sola
+repetición</strong> porque cada medición tarda minutos.</p>
+<div class="cell tag_hide-input docutils container">
+<details class="hide above-input">
+<summary aria-label="Toggle hidden content">
+<span class="collapsed">Mostrar el código</span>
+<span class="expanded">Ocultar el código</span>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">lote_base</span> <span class="o">=</span> <span class="n">feat</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"is_test"</span><span class="p">))</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="o">*</span><span class="n">lc</span><span class="o">.</span><span class="n">FEATURES</span><span class="p">)</span><span class="o">.</span><span class="n">limit</span><span class="p">(</span><span class="mi">5000</span><span class="p">)</span><span class="o">.</span><span class="n">toPandas</span><span class="p">()</span>     <span class="c1"># 5 000 filas del test (post-entrenamiento)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">tiempo_crear</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">arrow</span><span class="p">,</span> <span class="n">reps</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
+    <span class="n">spark</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">"spark.sql.execution.arrow.pyspark.enabled"</span><span class="p">,</span> <span class="s2">"true"</span> <span class="k">if</span> <span class="n">arrow</span> <span class="k">else</span> <span class="s2">"false"</span><span class="p">)</span>
+    <span class="n">ts</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">reps</span><span class="p">):</span>
+        <span class="n">t0_</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+        <span class="n">spark</span><span class="o">.</span><span class="n">createDataFrame</span><span class="p">(</span><span class="n">lote_base</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:</span><span class="n">n</span><span class="p">])</span><span class="o">.</span><span class="n">coalesce</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+        <span class="n">ts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">t0_</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">ts</span><span class="p">))</span>
+
+
+<span class="n">crear</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">arrow</span> <span class="ow">in</span> <span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">5000</span><span class="p">):</span>
+        <span class="n">crear</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">"Arrow"</span><span class="p">:</span> <span class="s2">"sí"</span> <span class="k">if</span> <span class="n">arrow</span> <span class="k">else</span> <span class="s2">"no"</span><span class="p">,</span> <span class="s2">"filas"</span><span class="p">:</span> <span class="n">n</span><span class="p">,</span> <span class="s2">"createDataFrame + count (s)"</span><span class="p">:</span> <span class="n">tiempo_crear</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">arrow</span><span class="p">,</span> <span class="n">reps</span><span class="o">=</span><span class="mi">3</span> <span class="k">if</span> <span class="n">arrow</span> <span class="k">else</span> <span class="mi">1</span><span class="p">)})</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">crear</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">crear</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">crear</span><span class="p">)</span>
+<span class="n">display</span><span class="p">(</span><span class="n">crear</span><span class="p">)</span>
+<span class="n">ESTADO</span><span class="p">[</span><span class="s2">"createDataFrame_s"</span><span class="p">]</span> <span class="o">=</span> <span class="n">crear</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(</span><span class="n">orient</span><span class="o">=</span><span class="s2">"records"</span><span class="p">)</span>
+<span class="n">guardar</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</details>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{'Arrow': 'sí', 'filas': 1, 'createDataFrame + count (s)': 0.051292199990712106}
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{'Arrow': 'sí', 'filas': 100, 'createDataFrame + count (s)': 0.07277450000401586}
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{'Arrow': 'sí', 'filas': 5000, 'createDataFrame + count (s)': 0.09927650005556643}
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{'Arrow': 'no', 'filas': 1, 'createDataFrame + count (s)': 430.08549309999216}
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{'Arrow': 'no', 'filas': 100, 'createDataFrame + count (s)': 426.3655910999514}
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{'Arrow': 'no', 'filas': 5000, 'createDataFrame + count (s)': 423.35713969997596}
+</pre></div>
+</div>
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Arrow</th>
+      <th>filas</th>
+      <th>createDataFrame + count (s)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>sí</td>
+      <td>1</td>
+      <td>0.0513</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>sí</td>
+      <td>100</td>
+      <td>0.0728</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>sí</td>
+      <td>5000</td>
+      <td>0.0993</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>no</td>
+      <td>1</td>
+      <td>430.0855</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>no</td>
+      <td>100</td>
+      <td>426.3656</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>no</td>
+      <td>5000</td>
+      <td>423.3571</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+</section>
+<section id="b-enviar-el-modelo-a-las-tareas">
+<h3>(b) Enviar el modelo a las tareas<a class="headerlink" href="#b-enviar-el-modelo-a-las-tareas" title="Permalink to this heading">#</a></h3>
+<p>Se entrenan dos bosques pequeños (con <strong>44</strong> y con <strong>≈ 19 000 nodos</strong>) y se mide la predicción de un
+lote (con Arrow activado, para que el costo del lote sea mínimo). Si el tiempo dependiera del
+tamaño del modelo, debería crecer con el número de nodos.</p>
+<div class="cell tag_hide-input docutils container">
+<details class="hide above-input">
+<summary aria-label="Toggle hidden content">
+<span class="collapsed">Mostrar el código</span>
+<span class="expanded">Ocultar el código</span>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">spark</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">"spark.sql.execution.arrow.pyspark.enabled"</span><span class="p">,</span> <span class="s2">"true"</span><span class="p">)</span>
+<span class="n">modelos</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="n">nombre</span><span class="p">,</span> <span class="n">kw</span> <span class="ow">in</span> <span class="p">((</span><span class="s2">"10 árboles, prof. 5"</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">numTrees</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">maxDepth</span><span class="o">=</span><span class="mi">5</span><span class="p">)),</span> <span class="p">(</span><span class="s2">"20 árboles, prof. 10"</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">numTrees</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">maxDepth</span><span class="o">=</span><span class="mi">10</span><span class="p">))):</span>
+    <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">m_</span> <span class="o">=</span> <span class="n">RandomForestClassifier</span><span class="p">(</span><span class="n">labelCol</span><span class="o">=</span><span class="s2">"default"</span><span class="p">,</span> <span class="n">featuresCol</span><span class="o">=</span><span class="s2">"features"</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">lc</span><span class="o">.</span><span class="n">SEED</span><span class="p">,</span> <span class="n">maxMemoryInMB</span><span class="o">=</span><span class="n">MAXMEM</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">train_f</span><span class="p">)</span>
+    <span class="n">modelos</span><span class="p">[</span><span class="n">nombre</span><span class="p">]</span> <span class="o">=</span> <span class="n">m_</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">nombre</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">m_</span><span class="o">.</span><span class="n">totalNumNodes</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> nodos · ajuste </span><span class="si">{</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">t0</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> s"</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">predecir</span><span class="p">(</span><span class="n">modelo</span><span class="p">,</span> <span class="n">lote_pdf</span><span class="p">):</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">createDataFrame</span><span class="p">(</span><span class="n">lote_pdf</span><span class="p">)</span><span class="o">.</span><span class="n">coalesce</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">prep_model</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">to_model_input</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pred_con</span><span class="p">(</span><span class="n">modelo</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">vector_to_array</span><span class="p">(</span><span class="s2">"probability"</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">toPandas</span><span class="p">()</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span>
+
+
+<span class="n">lat_rows</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">nombre</span><span class="p">,</span> <span class="n">m_</span> <span class="ow">in</span> <span class="n">modelos</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">5000</span><span class="p">):</span>
+        <span class="n">ts</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+            <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+            <span class="n">predecir</span><span class="p">(</span><span class="n">m_</span><span class="p">,</span> <span class="n">lote_base</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:</span><span class="n">n</span><span class="p">])</span>
+            <span class="n">ts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">t0</span><span class="p">)</span>
+        <span class="n">lat_rows</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">"modelo"</span><span class="p">:</span> <span class="n">nombre</span><span class="p">,</span> <span class="s2">"nodos"</span><span class="p">:</span> <span class="n">m_</span><span class="o">.</span><span class="n">totalNumNodes</span><span class="p">,</span> <span class="s2">"filas"</span><span class="p">:</span> <span class="n">n</span><span class="p">,</span> <span class="s2">"latencia mediana (s)"</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">ts</span><span class="p">))})</span>
+<span class="n">lat</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">lat_rows</span><span class="p">)</span>
+<span class="n">display</span><span class="p">(</span><span class="n">lat</span><span class="p">)</span>
+<span class="n">ESTADO</span><span class="p">[</span><span class="s2">"latencia_modelos_pequenos"</span><span class="p">]</span> <span class="o">=</span> <span class="n">lat</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(</span><span class="n">orient</span><span class="o">=</span><span class="s2">"records"</span><span class="p">)</span>
+<span class="n">guardar</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</details>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>10 árboles, prof. 5: 44 nodos · ajuste 56 s
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>20 árboles, prof. 10: 19,302 nodos · ajuste 167 s
+</pre></div>
+</div>
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>modelo</th>
+      <th>nodos</th>
+      <th>filas</th>
+      <th>latencia mediana (s)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>10 árboles, prof. 5</td>
+      <td>44</td>
+      <td>1</td>
+      <td>0.2376</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>10 árboles, prof. 5</td>
+      <td>44</td>
+      <td>100</td>
+      <td>0.2654</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>10 árboles, prof. 5</td>
+      <td>44</td>
+      <td>5000</td>
+      <td>0.3380</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>20 árboles, prof. 10</td>
+      <td>19302</td>
+      <td>1</td>
+      <td>0.2949</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>20 árboles, prof. 10</td>
+      <td>19302</td>
+      <td>100</td>
+      <td>0.2590</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>20 árboles, prof. 10</td>
+      <td>19302</td>
+      <td>5000</td>
+      <td>0.3998</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<div class="cell tag_hide-input docutils container">
+<details class="hide above-input">
+<summary aria-label="Toggle hidden content">
+<span class="collapsed">Mostrar el código</span>
+<span class="expanded">Ocultar el código</span>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sk</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">((</span><span class="n">RESULTS</span> <span class="o">/</span> <span class="s2">"sk_resultados.json"</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">())</span>
+<span class="n">mediano</span> <span class="o">=</span> <span class="n">lat</span><span class="p">[</span><span class="n">lat</span><span class="p">[</span><span class="s2">"modelo"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"20 árboles, prof. 10"</span><span class="p">]</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">"filas"</span><span class="p">)[</span><span class="s2">"latencia mediana (s)"</span><span class="p">]</span>
+<span class="n">comp</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">"scikit-learn (mejor modelo con probabilidades)"</span><span class="p">:</span> <span class="p">{</span><span class="nb">int</span><span class="p">(</span><span class="n">k</span><span class="p">):</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">sk</span><span class="p">[</span><span class="s2">"latencia_predict_s"</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span>
+                     <span class="s2">"PySpark (20 árboles, prof. 10, Arrow)"</span><span class="p">:</span> <span class="n">mediano</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()})</span>
+<span class="n">comp</span><span class="p">[</span><span class="s2">"PySpark / scikit-learn"</span><span class="p">]</span> <span class="o">=</span> <span class="n">comp</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">comp</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
+<span class="n">comp</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">"filas por llamada"</span>
+<span class="n">display</span><span class="p">(</span><span class="n">comp</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">format</span><span class="p">({</span><span class="s2">"scikit-learn (mejor modelo con probabilidades)"</span><span class="p">:</span> <span class="s2">"</span><span class="si">{:.4f}</span><span class="s2"> s"</span><span class="p">,</span> <span class="s2">"PySpark (20 árboles, prof. 10, Arrow)"</span><span class="p">:</span> <span class="s2">"</span><span class="si">{:.3f}</span><span class="s2"> s"</span><span class="p">,</span>
+                           <span class="s2">"PySpark / scikit-learn"</span><span class="p">:</span> <span class="s2">"</span><span class="si">{:,.0f}</span><span class="s2">×"</span><span class="p">}))</span>
+<span class="n">ESTADO</span><span class="p">[</span><span class="s2">"latencia_predict_s"</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">):</span> <span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">mediano</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+<span class="n">guardar</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</details>
+<div class="cell_output docutils container">
+<div class="output text_html"><style type="text/css">
+</style>
+<table id="T_b912b">
+  <thead>
+    <tr>
+      <th class="blank level0" >&nbsp;</th>
+      <th id="T_b912b_level0_col0" class="col_heading level0 col0" >scikit-learn (mejor modelo con probabilidades)</th>
+      <th id="T_b912b_level0_col1" class="col_heading level0 col1" >PySpark (20 árboles, prof. 10, Arrow)</th>
+      <th id="T_b912b_level0_col2" class="col_heading level0 col2" >PySpark / scikit-learn</th>
+    </tr>
+    <tr>
+      <th class="index_name level0" >filas por llamada</th>
+      <th class="blank col0" >&nbsp;</th>
+      <th class="blank col1" >&nbsp;</th>
+      <th class="blank col2" >&nbsp;</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th id="T_b912b_level0_row0" class="row_heading level0 row0" >1</th>
+      <td id="T_b912b_row0_col0" class="data row0 col0" >0.0002 s</td>
+      <td id="T_b912b_row0_col1" class="data row0 col1" >0.295 s</td>
+      <td id="T_b912b_row0_col2" class="data row0 col2" >1,221×</td>
+    </tr>
+    <tr>
+      <th id="T_b912b_level0_row1" class="row_heading level0 row1" >100</th>
+      <td id="T_b912b_row1_col0" class="data row1 col0" >0.0006 s</td>
+      <td id="T_b912b_row1_col1" class="data row1 col1" >0.259 s</td>
+      <td id="T_b912b_row1_col2" class="data row1 col2" >461×</td>
+    </tr>
+    <tr>
+      <th id="T_b912b_level0_row2" class="row_heading level0 row2" >5000</th>
+      <td id="T_b912b_row2_col0" class="data row2 col0" >0.0135 s</td>
+      <td id="T_b912b_row2_col1" class="data row2 col1" >0.400 s</td>
+      <td id="T_b912b_row2_col2" class="data row2 col2" >30×</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p>De estas mediciones se desprenden tres conclusiones:</p>
+<ul class="simple">
+<li><p><strong>(a) Sin Arrow, mover incluso una sola fila a Spark tarda ≈ 426 s (7.1 min)</strong>, casi lo mismo para 1,
+100 o 5 000 filas: el costo es fijo. La explicación más probable son las 400 particiones fijadas en la
+sesión (400 tareas de Python que arrancar), aunque esta prueba solo varió Arrow y no el número de
+particiones. Con Arrow es de centésimas de segundo. Ese costo fijo coincide con las llamadas de
+≈ 465 s del bosque final (3b.2): <strong>la causa de los ≈ 8 minutos era el envío del lote sin Arrow, no el
+modelo.</strong></p></li>
+<li><p><strong>(b) Con Arrow, el tiempo de predicción es ≈ 0.3 s y prácticamente igual para un modelo de 44 nodos
+que para uno de ≈ 19 000</strong>, y casi igual para 1 fila que para 5 000. Es decir, todavía queda un
+costo fijo de ≈ 0.3 s por llamada (planificar el trabajo, lanzar tareas, traer el resultado), que
+<strong>no depende del modelo ni del lote</strong>.</p></li>
+<li><p>scikit-learn tiene el modelo en la memoria del mismo proceso: la misma predicción de 1 fila cuesta
+décimas de milisegundo. La diferencia va de <strong>poco más de un orden de magnitud (≈ 38×) con 5 000 filas
+a cerca de tres órdenes de magnitud (≈ 1 190×) con una sola fila</strong>, porque el costo fijo de Spark pesa
+más cuanto más pequeño es el lote; en ningún caso llega a «minutos» si se usa Arrow.</p></li>
+</ul>
+<div class="warning admonition">
+<p class="admonition-title">Alcance de la medición</p>
+<p>No se repitió la medición con el bosque final (100 árboles, profundidad 15, millones de nodos): la
+sesión de la ejecución preliminar se cerró. Por eso <strong>no se descarta</strong> que un
+modelo de ese tamaño agregue algún costo de serialización, pero <strong>no se observó</strong> hasta 19 000 nodos
+y la diferencia de ≈ 8 min es consistente con el costo de enviar el lote sin Arrow.</p>
+</div>
+</section>
+</section>
+<section id="b-4-que-efecto-tuvo-cada-elemento-de-la-configuracion-micro-benchmarks">
+<h2>3b.4 ¿Qué efecto tuvo cada elemento de la configuración? (micro-<em>benchmarks</em>)<a class="headerlink" href="#b-4-que-efecto-tuvo-cada-elemento-de-la-configuracion-micro-benchmarks" title="Permalink to this heading">#</a></h2>
+<p>Sobre <strong>un bosque pequeño fijo</strong> se mide qué ocurre al <strong>quitar o cambiar</strong> cada elemento. Son pruebas de
+tiempo, no el modelo final. Cada condición se midió una sola vez y en orden fijo, así que los factores
+son orientativos: el calentamiento de la JVM puede favorecer a la segunda medición.</p>
+<div class="cell tag_hide-input docutils container">
+<details class="hide above-input">
+<summary aria-label="Toggle hidden content">
+<span class="collapsed">Mostrar el código</span>
+<span class="expanded">Ocultar el código</span>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">tiempo_fit</span><span class="p">(</span><span class="n">df_</span><span class="p">,</span> <span class="n">n_trees</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">lc</span><span class="o">.</span><span class="n">SEED</span><span class="p">):</span>
+    <span class="n">t0_</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">RandomForestClassifier</span><span class="p">(</span><span class="n">labelCol</span><span class="o">=</span><span class="s2">"default"</span><span class="p">,</span> <span class="n">featuresCol</span><span class="o">=</span><span class="s2">"features"</span><span class="p">,</span> <span class="n">numTrees</span><span class="o">=</span><span class="n">n_trees</span><span class="p">,</span> <span class="n">maxDepth</span><span class="o">=</span><span class="n">depth</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span>
+                           <span class="n">maxMemoryInMB</span><span class="o">=</span><span class="n">MAXMEM</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">df_</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t0_</span>
+
+
+<span class="n">abl</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="c1"># (a) Con y sin caché</span>
+<span class="n">peq</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">n_trees</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">train_f</span><span class="o">.</span><span class="n">unpersist</span><span class="p">()</span>
+<span class="n">t_nocache</span> <span class="o">=</span> <span class="n">tiempo_fit</span><span class="p">(</span><span class="n">train_f</span><span class="p">,</span> <span class="o">**</span><span class="n">peq</span><span class="p">)</span>
+<span class="n">train_f</span><span class="o">.</span><span class="n">persist</span><span class="p">(</span><span class="n">StorageLevel</span><span class="o">.</span><span class="n">MEMORY_AND_DISK</span><span class="p">)</span>
+<span class="n">train_f</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+<span class="n">t_cache</span> <span class="o">=</span> <span class="n">tiempo_fit</span><span class="p">(</span><span class="n">train_f</span><span class="p">,</span> <span class="o">**</span><span class="n">peq</span><span class="p">)</span>
+<span class="n">abl</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">"condición"</span><span class="p">:</span> <span class="s2">"Caché tras VectorAssembler (5 árboles, prof. 5)"</span><span class="p">,</span> <span class="s2">"con la condición (s)"</span><span class="p">:</span> <span class="n">t_cache</span><span class="p">,</span>
+            <span class="s2">"sin / alternativa (s)"</span><span class="p">:</span> <span class="n">t_nocache</span><span class="p">,</span> <span class="s2">"alternativa"</span><span class="p">:</span> <span class="s2">"sin .persist()"</span><span class="p">})</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">abl</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># (b) Particiones: 400 (fijadas en la sesión) vs 12 (≈ hilos)</span>
+<span class="n">tiempos_part</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="n">n_part</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">400</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()):</span>
+    <span class="n">dfp</span> <span class="o">=</span> <span class="n">train_f</span><span class="o">.</span><span class="n">repartition</span><span class="p">(</span><span class="n">n_part</span><span class="p">)</span><span class="o">.</span><span class="n">persist</span><span class="p">(</span><span class="n">StorageLevel</span><span class="o">.</span><span class="n">MEMORY_AND_DISK</span><span class="p">)</span>
+    <span class="n">dfp</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+    <span class="n">tiempos_part</span><span class="p">[</span><span class="n">n_part</span><span class="p">]</span> <span class="o">=</span> <span class="n">tiempo_fit</span><span class="p">(</span><span class="n">dfp</span><span class="p">)</span>
+    <span class="n">dfp</span><span class="o">.</span><span class="n">unpersist</span><span class="p">()</span>
+<span class="n">abl</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">"condición"</span><span class="p">:</span> <span class="s2">"400 particiones del DataFrame de entrenamiento (10 árboles, prof. 10)"</span><span class="p">,</span>
+            <span class="s2">"con la condición (s)"</span><span class="p">:</span> <span class="n">tiempos_part</span><span class="p">[</span><span class="mi">400</span><span class="p">],</span> <span class="s2">"sin / alternativa (s)"</span><span class="p">:</span> <span class="n">tiempos_part</span><span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()],</span>
+            <span class="s2">"alternativa"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span><span class="si">}</span><span class="s2"> particiones"</span><span class="p">})</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">abl</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># (c) CrossValidator: numFolds 2 vs 3 y parallelism 1 vs 3 (malla mínima de 2 combinaciones)</span>
+<span class="n">rf</span> <span class="o">=</span> <span class="n">RandomForestClassifier</span><span class="p">(</span><span class="n">labelCol</span><span class="o">=</span><span class="s2">"default"</span><span class="p">,</span> <span class="n">featuresCol</span><span class="o">=</span><span class="s2">"features"</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">lc</span><span class="o">.</span><span class="n">SEED</span><span class="p">,</span> <span class="n">maxMemoryInMB</span><span class="o">=</span><span class="n">MAXMEM</span><span class="p">)</span>
+<span class="n">mini</span> <span class="o">=</span> <span class="n">ParamGridBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">addGrid</span><span class="p">(</span><span class="n">rf</span><span class="o">.</span><span class="n">numTrees</span><span class="p">,</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">])</span><span class="o">.</span><span class="n">addGrid</span><span class="p">(</span><span class="n">rf</span><span class="o">.</span><span class="n">maxDepth</span><span class="p">,</span> <span class="p">[</span><span class="mi">5</span><span class="p">])</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="n">tiempos_cv</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="n">nf</span><span class="p">,</span> <span class="n">par_</span> <span class="ow">in</span> <span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">)):</span>
+    <span class="n">t0_</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">CrossValidator</span><span class="p">(</span><span class="n">estimator</span><span class="o">=</span><span class="n">rf</span><span class="p">,</span> <span class="n">estimatorParamMaps</span><span class="o">=</span><span class="n">mini</span><span class="p">,</span> <span class="n">evaluator</span><span class="o">=</span><span class="n">evaluador</span><span class="p">,</span> <span class="n">numFolds</span><span class="o">=</span><span class="n">nf</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">lc</span><span class="o">.</span><span class="n">SEED</span><span class="p">,</span>
+                   <span class="n">parallelism</span><span class="o">=</span><span class="n">par_</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">train_f</span><span class="p">)</span>
+    <span class="n">tiempos_cv</span><span class="p">[(</span><span class="n">nf</span><span class="p">,</span> <span class="n">par_</span><span class="p">)]</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t0_</span>
+<span class="n">abl</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">"condición"</span><span class="p">:</span> <span class="s2">"CrossValidator con numFolds=3 (usado en los seis modelos) vs 2, malla de 2 combinaciones"</span><span class="p">,</span>
+            <span class="s2">"con la condición (s)"</span><span class="p">:</span> <span class="n">tiempos_cv</span><span class="p">[(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">)],</span> <span class="s2">"sin / alternativa (s)"</span><span class="p">:</span> <span class="n">tiempos_cv</span><span class="p">[(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)],</span> <span class="s2">"alternativa"</span><span class="p">:</span> <span class="s2">"numFolds=2"</span><span class="p">})</span>
+<span class="n">abl</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">"condición"</span><span class="p">:</span> <span class="s2">"CrossValidator parallelism=1 (elegido) vs 3, 3 pliegues, malla de 2 combinaciones"</span><span class="p">,</span>
+            <span class="s2">"con la condición (s)"</span><span class="p">:</span> <span class="n">tiempos_cv</span><span class="p">[(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">)],</span> <span class="s2">"sin / alternativa (s)"</span><span class="p">:</span> <span class="n">tiempos_cv</span><span class="p">[(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">)],</span> <span class="s2">"alternativa"</span><span class="p">:</span> <span class="s2">"parallelism=3"</span><span class="p">})</span>
+<span class="n">abl</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">abl</span><span class="p">)</span>
+<span class="n">abl</span><span class="p">[</span><span class="s2">"factor (alternativa / condición)"</span><span class="p">]</span> <span class="o">=</span> <span class="n">abl</span><span class="p">[</span><span class="s2">"sin / alternativa (s)"</span><span class="p">]</span> <span class="o">/</span> <span class="n">abl</span><span class="p">[</span><span class="s2">"con la condición (s)"</span><span class="p">]</span>
+<span class="n">abl</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">RESULTS</span> <span class="o">/</span> <span class="s2">"spark_ablacion.csv"</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">display</span><span class="p">(</span><span class="n">abl</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">format</span><span class="p">({</span><span class="s2">"con la condición (s)"</span><span class="p">:</span> <span class="s2">"</span><span class="si">{:.1f}</span><span class="s2">"</span><span class="p">,</span> <span class="s2">"sin / alternativa (s)"</span><span class="p">:</span> <span class="s2">"</span><span class="si">{:.1f}</span><span class="s2">"</span><span class="p">,</span> <span class="s2">"factor (alternativa / condición)"</span><span class="p">:</span> <span class="s2">"</span><span class="si">{:.2f}</span><span class="s2">"</span><span class="p">}))</span>
+</pre></div>
+</div>
+</div>
+</details>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{'condición': 'Caché tras VectorAssembler (5 árboles, prof. 5)', 'con la condición (s)': 50.64324641227722, 'sin / alternativa (s)': 68.54880404472351, 'alternativa': 'sin .persist()'}
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{'condición': '400 particiones del DataFrame de entrenamiento (10 árboles, prof. 10)', 'con la condición (s)': 141.73896384239197, 'sin / alternativa (s)': 15.111820936203003, 'alternativa': '12 particiones'}
+</pre></div>
+</div>
+<div class="output text_html"><style type="text/css">
+</style>
+<table id="T_6e0d0">
+  <thead>
+    <tr>
+      <th class="blank level0" >&nbsp;</th>
+      <th id="T_6e0d0_level0_col0" class="col_heading level0 col0" >condición</th>
+      <th id="T_6e0d0_level0_col1" class="col_heading level0 col1" >con la condición (s)</th>
+      <th id="T_6e0d0_level0_col2" class="col_heading level0 col2" >sin / alternativa (s)</th>
+      <th id="T_6e0d0_level0_col3" class="col_heading level0 col3" >alternativa</th>
+      <th id="T_6e0d0_level0_col4" class="col_heading level0 col4" >factor (alternativa / condición)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th id="T_6e0d0_level0_row0" class="row_heading level0 row0" >0</th>
+      <td id="T_6e0d0_row0_col0" class="data row0 col0" >Caché tras VectorAssembler (5 árboles, prof. 5)</td>
+      <td id="T_6e0d0_row0_col1" class="data row0 col1" >50.6</td>
+      <td id="T_6e0d0_row0_col2" class="data row0 col2" >68.5</td>
+      <td id="T_6e0d0_row0_col3" class="data row0 col3" >sin .persist()</td>
+      <td id="T_6e0d0_row0_col4" class="data row0 col4" >1.35</td>
+    </tr>
+    <tr>
+      <th id="T_6e0d0_level0_row1" class="row_heading level0 row1" >1</th>
+      <td id="T_6e0d0_row1_col0" class="data row1 col0" >400 particiones del DataFrame de entrenamiento (10 árboles, prof. 10)</td>
+      <td id="T_6e0d0_row1_col1" class="data row1 col1" >141.7</td>
+      <td id="T_6e0d0_row1_col2" class="data row1 col2" >15.1</td>
+      <td id="T_6e0d0_row1_col3" class="data row1 col3" >12 particiones</td>
+      <td id="T_6e0d0_row1_col4" class="data row1 col4" >0.11</td>
+    </tr>
+    <tr>
+      <th id="T_6e0d0_level0_row2" class="row_heading level0 row2" >2</th>
+      <td id="T_6e0d0_row2_col0" class="data row2 col0" >CrossValidator con numFolds=3 (usado en los seis modelos) vs 2, malla de 2 combinaciones</td>
+      <td id="T_6e0d0_row2_col1" class="data row2 col1" >395.0</td>
+      <td id="T_6e0d0_row2_col2" class="data row2 col2" >281.6</td>
+      <td id="T_6e0d0_row2_col3" class="data row2 col3" >numFolds=2</td>
+      <td id="T_6e0d0_row2_col4" class="data row2 col4" >0.71</td>
+    </tr>
+    <tr>
+      <th id="T_6e0d0_level0_row3" class="row_heading level0 row3" >3</th>
+      <td id="T_6e0d0_row3_col0" class="data row3 col0" >CrossValidator parallelism=1 (elegido) vs 3, 3 pliegues, malla de 2 combinaciones</td>
+      <td id="T_6e0d0_row3_col1" class="data row3 col1" >395.0</td>
+      <td id="T_6e0d0_row3_col2" class="data row3 col2" >350.7</td>
+      <td id="T_6e0d0_row3_col3" class="data row3 col3" >parallelism=3</td>
+      <td id="T_6e0d0_row3_col4" class="data row3 col4" >0.89</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p><strong>Lectura de la tabla.</strong> «Factor» es cuántas veces tarda más (&gt; 1) o menos (&lt; 1) la alternativa frente a la
+opción usada en los capítulos 3 y 3b. Sirve para cuantificar qué efecto tuvo cada elemento de la
+configuración en el tiempo de entrenamiento.</p>
+</section>
+<section id="b-5-experimento-de-escala-mismo-bosque-fijo-que-en-scikit-learn">
+<h2>3b.5 Experimento de escala (mismo bosque fijo que en scikit-learn)<a class="headerlink" href="#b-5-experimento-de-escala-mismo-bosque-fijo-que-en-scikit-learn" title="Permalink to this heading">#</a></h2>
+<p>Se ajusta <strong>un bosque fijo</strong> (50 árboles, profundidad 10) con subconjuntos crecientes del
+entrenamiento (<code class="docutils literal notranslate"><span class="pre">rank</span></code> &lt; N, el mismo orden aleatorio fijo que usó scikit-learn), para ver cuándo
+cambia el ganador en velocidad. Es un <em>benchmark</em>, por eso aquí sí hay submuestras.</p>
+<div class="cell tag_hide-input docutils container">
+<details class="hide above-input">
+<summary aria-label="Toggle hidden content">
+<span class="collapsed">Mostrar el código</span>
+<span class="expanded">Ocultar el código</span>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tam</span> <span class="o">=</span> <span class="p">[</span><span class="mi">10_000</span><span class="p">,</span> <span class="mi">50_000</span><span class="p">,</span> <span class="mi">100_000</span><span class="p">,</span> <span class="mi">250_000</span><span class="p">,</span> <span class="mi">500_000</span><span class="p">,</span> <span class="n">n_train_f</span><span class="p">]</span>
+<span class="n">esc</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">tam</span><span class="p">:</span>
+    <span class="n">sub</span> <span class="o">=</span> <span class="n">train_f</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"rank"</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">n</span><span class="p">)</span><span class="o">.</span><span class="n">persist</span><span class="p">(</span><span class="n">StorageLevel</span><span class="o">.</span><span class="n">MEMORY_AND_DISK</span><span class="p">)</span>
+    <span class="n">filas</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+    <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">mdl</span> <span class="o">=</span> <span class="n">RandomForestClassifier</span><span class="p">(</span><span class="n">labelCol</span><span class="o">=</span><span class="s2">"default"</span><span class="p">,</span> <span class="n">featuresCol</span><span class="o">=</span><span class="s2">"features"</span><span class="p">,</span> <span class="n">numTrees</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">maxDepth</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">lc</span><span class="o">.</span><span class="n">SEED</span><span class="p">,</span>
+                                 <span class="n">maxMemoryInMB</span><span class="o">=</span><span class="n">MAXMEM</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">sub</span><span class="p">)</span>
+    <span class="n">t_fit</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t0</span>
+    <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">evaluador</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">pred_con</span><span class="p">(</span><span class="n">mdl</span><span class="p">,</span> <span class="n">test_f</span><span class="p">))</span>
+    <span class="n">t_pred</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t0</span>
+    <span class="n">esc</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">"filas_train"</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">filas</span><span class="p">),</span> <span class="s2">"t_ajuste_s"</span><span class="p">:</span> <span class="n">t_fit</span><span class="p">,</span> <span class="s2">"t_prediccion_s"</span><span class="p">:</span> <span class="n">t_pred</span><span class="p">,</span> <span class="s2">"auc_test"</span><span class="p">:</span> <span class="n">a</span><span class="p">})</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">filas</span><span class="si">:</span><span class="s2">&gt;10,</span><span class="si">}</span><span class="s2"> filas · ajuste </span><span class="si">{</span><span class="n">t_fit</span><span class="si">:</span><span class="s2">7.1f</span><span class="si">}</span><span class="s2"> s · predicción+AUC </span><span class="si">{</span><span class="n">t_pred</span><span class="si">:</span><span class="s2">5.1f</span><span class="si">}</span><span class="s2"> s · AUC </span><span class="si">{</span><span class="n">a</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">sub</span><span class="o">.</span><span class="n">unpersist</span><span class="p">()</span>
+    <span class="k">del</span> <span class="n">mdl</span>
+    <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">esc</span><span class="p">)</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">RESULTS</span> <span class="o">/</span> <span class="s2">"escala_spark.csv"</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">esc</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">esc</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</details>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>    10,000 filas · ajuste   161.0 s · predicción+AUC  21.0 s · AUC 0.7003
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>    50,000 filas · ajuste   172.2 s · predicción+AUC  21.9 s · AUC 0.7076
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>   100,000 filas · ajuste   179.2 s · predicción+AUC  21.7 s · AUC 0.7092
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>   250,000 filas · ajuste   201.5 s · predicción+AUC  22.0 s · AUC 0.7094
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>   500,000 filas · ajuste   219.2 s · predicción+AUC  21.8 s · AUC 0.7089
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span> 1,076,248 filas · ajuste   257.6 s · predicción+AUC  20.9 s · AUC 0.7084
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="b-6-guardar-y-cerrar">
+<h2>3b.6 Guardar y cerrar<a class="headerlink" href="#b-6-guardar-y-cerrar" title="Permalink to this heading">#</a></h2>
+<div class="cell tag_hide-input docutils container">
+<details class="hide above-input">
+<summary aria-label="Toggle hidden content">
+<span class="collapsed">Mostrar el código</span>
+<span class="expanded">Ocultar el código</span>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">guardar</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Resultados guardados. Claves del capítulo 3b:"</span><span class="p">,</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ESTADO</span><span class="p">))</span>
+<span class="n">spark</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</details>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Resultados guardados. Claves del capítulo 3b: ['createDataFrame_s', 'latencia_bosque_final_mediana_s', 'latencia_modelos_pequenos', 'latencia_predict_s']
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./notebooks"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="03_pyspark_seis_modelos.html"
+       title="página anterior">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">anterior</p>
+        <p class="prev-next-title">3 · Preprocesamiento y modelado con PySpark (seis modelos)</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="03c_pyspark_escala_ajustada.html"
+       title="siguiente página">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">siguiente</p>
+        <p class="prev-next-title">3c · PySpark con el paralelismo ajustado al equipo (análisis de sensibilidad)</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contenido
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#b-1-sesion-y-datos">3b.1 Sesión y datos</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#b-2-el-sintoma-una-prediccion-con-el-bosque-final-tardaba-8-minutos">3b.2 El síntoma: una predicción con el bosque final tardaba ≈ 8 minutos</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#b-3-dos-costos-por-separado">3b.3 Dos costos por separado</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#a-enviar-el-lote-a-spark-createdataframe-desde-pandas">(a) Enviar el lote a Spark (<code class="docutils literal notranslate"><span class="pre">createDataFrame</span></code> desde pandas)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#b-enviar-el-modelo-a-las-tareas">(b) Enviar el modelo a las tareas</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#b-4-que-efecto-tuvo-cada-elemento-de-la-configuracion-micro-benchmarks">3b.4 ¿Qué efecto tuvo cada elemento de la configuración? (micro-<em>benchmarks</em>)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#b-5-experimento-de-escala-mismo-bosque-fijo-que-en-scikit-learn">3b.5 Experimento de escala (mismo bosque fijo que en scikit-learn)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#b-6-guardar-y-cerrar">3b.6 Guardar y cerrar</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+Por Ana Galván Arias, Valeria Oñate López, María José Ruiz Arias
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2026.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

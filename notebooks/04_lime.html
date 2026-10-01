@@ -1,0 +1,1199 @@
+
+
+<!DOCTYPE html>
+
+
+<html lang="es" data-content_root="" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>4 · Interpretabilidad con LIME &#8212; Incumplimiento de préstamos en Lending Club: scikit-learn frente a PySpark</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" href="../_static/styles/sphinx-book-theme.css?digest=14f4ca6b54d191a8c7657f6c759bf11a5fb86285" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-thebe.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/design-style.4045f2051d55cab465a707391d5b2007.min.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?digest=5a5c038af52cf7bc1a1ec88eea08e6366ee68824"></script>
+    <script>let toggleHintShow = 'Haz clic para mostrar';</script>
+    <script>let toggleHintHide = 'Haz clic para ocultar';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js"></script>
+    <script src="../_static/translations.js"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../_static/design-tabs.js"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"
+const thebe_selector = ".thebe,.cell"
+const thebe_selector_input = "pre"
+const thebe_selector_output = ".output, .cell_output"
+</script>
+    <script async="async" src="../_static/sphinx-thebe.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'notebooks/04_lime';</script>
+    <link rel="index" title="Índice" href="../genindex.html" />
+    <link rel="search" title="Búsqueda" href="../search.html" />
+    <link rel="next" title="5 · Comparación estadística de los modelos: DeLong, McNemar y bootstrap pareado" href="05_estadistica.html" />
+    <link rel="prev" title="3c · PySpark con el paralelismo ajustado al equipo (análisis de sensibilidad)" href="03c_pyspark_escala_ajustada.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="es"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Saltar al contenido principal</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Volver arriba</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Advertencia de versión"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../intro.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Incumplimiento de préstamos en Lending Club: scikit-learn frente a PySpark</p>
+  
+</a></div>
+        <div class="sidebar-primary-item"><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../intro.html">
+                    Incumplimiento de préstamos en Lending Club: scikit-learn frente a PySpark
+                </a>
+            </li>
+        </ul>
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="01_eda.html">1 · Análisis exploratorio de datos (EDA)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="02_sklearn_seis_modelos.html">2 · Preprocesamiento y modelado con scikit-learn (seis modelos)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="03_pyspark_seis_modelos.html">3 · Preprocesamiento y modelado con PySpark (seis modelos)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="03b_pyspark_costos.html">3b · Costos de PySpark: latencia de predicción y efecto de la configuración</a></li>
+<li class="toctree-l1"><a class="reference internal" href="03c_pyspark_escala_ajustada.html">3c · PySpark con el paralelismo ajustado al equipo (análisis de sensibilidad)</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">4 · Interpretabilidad con LIME</a></li>
+<li class="toctree-l1"><a class="reference internal" href="05_estadistica.html">5 · Comparación estadística de los modelos: DeLong, McNemar y bootstrap pareado</a></li>
+<li class="toctree-l1"><a class="reference internal" href="06_comparacion.html">6 · Comparación de resultados: métricas, tiempos y volumen</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reflexion.html">Discusión y conclusiones</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><label class="sidebar-toggle primary-toggle btn btn-sm" for="__primary" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</label></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+<a href="https://github.com/anagalvan7/lending-club-jbook" target="_blank"
+   class="btn btn-sm btn-source-repository-button"
+   title="Repositorio de origen"
+   data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+
+</a>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Descarga esta pagina">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/notebooks/04_lime.ipynb" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Descargar archivo fuente"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.ipynb</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Imprimir en PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Modo de pantalla completa"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="claro/oscuro" aria-label="claro/oscuro" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Búsqueda" aria-label="Búsqueda" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<label class="sidebar-toggle secondary-toggle btn btn-sm" for="__secondary"title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</label>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>4 · Interpretabilidad con LIME</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contenido </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#datos-y-modelo-de-scikit-learn">4.1 Datos y modelo de scikit-learn</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#construccion-del-explicador">4.2 Construcción del explicador</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#explicacion-de-los-dos-errores-scikit-learn">4.3 Explicación de los dos errores (scikit-learn)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#es-estable-la-explicacion-limitacion-de-lime">4.4 ¿Es estable la explicación? (limitación de LIME)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#de-lo-local-a-lo-global-agregando-muchas-explicaciones">4.5 De lo local a lo global (agregando muchas explicaciones)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#los-mismos-prestamos-con-el-modelo-de-pyspark">4.6 Los mismos préstamos con el modelo de PySpark</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#lime-y-pyspark-que-cambia-y-que-limita">4.7 LIME y PySpark: qué cambia y qué limita</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="interpretabilidad-con-lime">
+<h1>4 · Interpretabilidad con LIME<a class="headerlink" href="#interpretabilidad-con-lime" title="Permalink to this heading">#</a></h1>
+<p><strong>¿Qué es LIME?</strong> <em>Local Interpretable Model-agnostic Explanations</em>. Un modelo de cientos de árboles es una
+«caja negra»: da una probabilidad pero no dice <strong>por qué</strong>. LIME explica <strong>una predicción concreta</strong>:
+perturba el préstamo (cambia un poco sus variables), evalúa el modelo en cada
+versión perturbada y ajusta un modelo lineal <strong>simple</strong> que imita al modelo <strong>solo cerca de ese
+préstamo</strong>. Los coeficientes de ese modelo lineal son la explicación: qué variables empujaron la
+predicción hacia «incumple» o hacia «paga».</p>
+<p><strong>Qué se explica.</strong> LIME se aplica <strong>al modelo de mayor AUC de cada entorno entre los que
+entregan probabilidades</strong> (<code class="docutils literal notranslate"><span class="pre">LinearSVC</span></code> no las produce), sobre dos instancias <strong>mal clasificadas</strong>. Se
+explican <strong>los mismos dos préstamos</strong> en los dos entornos, elegidos porque <strong>ambos modelos ganadores
+fallan en ellos</strong> (sección 3.9):</p>
+<ul class="simple">
+<li><p><strong>Falso negativo:</strong> un préstamo que <strong>incumplió</strong> y que ambos modelos dejaron pasar con una
+probabilidad muy baja.</p></li>
+<li><p><strong>Falso positivo:</strong> un préstamo que <strong>se pagó</strong> y que ambos modelos marcaron como riesgoso.</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Nota</p>
+<p>LIME se aplica en el espacio de las <strong>variables originales</strong> (no en el de las columnas One-Hot),
+para que «purpose = credit_card» se lea como una sola variable. El adaptador está en
+<code class="docutils literal notranslate"><span class="pre">src/lc_utils.py::LimeAdapter</span></code>. La parte de PySpark se ejecutó <strong>dentro de la sesión de Spark del
+capítulo 3</strong> (el modelo vive allí); aquí se leen sus resultados (<code class="docutils literal notranslate"><span class="pre">resultados/lime_spark.json</span></code>).</p>
+</div>
+<div class="cell tag_hide-input docutils container">
+<details class="hide above-input">
+<summary aria-label="Toggle hidden content">
+<span class="collapsed">Mostrar el código</span>
+<span class="expanded">Ocultar el código</span>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">platform</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">joblib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">lime</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">seaborn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">sns</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">IPython.display</span><span class="w"> </span><span class="kn">import</span> <span class="n">display</span>
+
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span><span class="p">))</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src</span><span class="w"> </span><span class="kn">import</span> <span class="n">lc_models</span> <span class="k">as</span> <span class="n">lm</span>  <span class="c1"># noqa: E402</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src</span><span class="w"> </span><span class="kn">import</span> <span class="n">lc_utils</span> <span class="k">as</span> <span class="n">lc</span>  <span class="c1"># noqa: E402</span>
+
+<span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">"ignore"</span><span class="p">)</span>
+<span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s2">"display.width"</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+<span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s2">"display.float_format"</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">v</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">v</span><span class="si">:</span><span class="s2">,.4f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="n">sns</span><span class="o">.</span><span class="n">set_theme</span><span class="p">(</span><span class="n">style</span><span class="o">=</span><span class="s2">"whitegrid"</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="s2">"notebook"</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">"figure.dpi"</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span> <span class="s2">"axes.titleweight"</span><span class="p">:</span> <span class="s2">"bold"</span><span class="p">})</span>
+<span class="n">RESULTS</span><span class="p">,</span> <span class="n">DATA_DIR</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"../resultados"</span><span class="p">),</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"../data"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Python </span><span class="si">{</span><span class="n">platform</span><span class="o">.</span><span class="n">python_version</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</details>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Python 3.10.21
+</pre></div>
+</div>
+</div>
+</div>
+<section id="datos-y-modelo-de-scikit-learn">
+<h2>4.1 Datos y modelo de scikit-learn<a class="headerlink" href="#datos-y-modelo-de-scikit-learn" title="Permalink to this heading">#</a></h2>
+<p>Se reconstruye la tabla con las mismas reglas y la misma partición, y se carga el <strong>modelo de mayor AUC
+entre los que dan probabilidades</strong>, entrenado en el capítulo 2.</p>
+<div class="cell tag_hide-input docutils container">
+<details class="hide above-input">
+<summary aria-label="Toggle hidden content">
+<span class="collapsed">Mostrar el código</span>
+<span class="expanded">Ocultar el código</span>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">m</span> <span class="o">=</span> <span class="n">lc</span><span class="o">.</span><span class="n">build_model_frame</span><span class="p">(</span><span class="n">lc</span><span class="o">.</span><span class="n">load_raw</span><span class="p">(</span><span class="n">usecols</span><span class="o">=</span><span class="n">lc</span><span class="o">.</span><span class="n">RAW_COLUMNS</span><span class="p">))</span>
+<span class="n">split</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span><span class="n">DATA_DIR</span> <span class="o">/</span> <span class="s2">"split_ids.parquet"</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">split</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]</span><span class="o">.</span><span class="n">equals</span><span class="p">(</span><span class="n">m</span><span class="p">[</span><span class="s2">"id"</span><span class="p">])</span>
+<span class="n">es_test</span> <span class="o">=</span> <span class="p">(</span><span class="n">split</span><span class="p">[</span><span class="s2">"split"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"test"</span><span class="p">)</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+<span class="n">train</span><span class="p">,</span> <span class="n">test</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="o">~</span><span class="n">es_test</span><span class="p">]</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">m</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">es_test</span><span class="p">]</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">art</span> <span class="o">=</span> <span class="n">joblib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">DATA_DIR</span> <span class="o">/</span> <span class="s2">"models"</span> <span class="o">/</span> <span class="s2">"sk_lime_model.joblib"</span><span class="p">)</span>
+<span class="n">prep</span><span class="p">,</span> <span class="n">scaler</span><span class="p">,</span> <span class="n">modelo</span><span class="p">,</span> <span class="n">clave</span><span class="p">,</span> <span class="n">THR</span> <span class="o">=</span> <span class="n">art</span><span class="p">[</span><span class="s2">"prep"</span><span class="p">],</span> <span class="n">art</span><span class="p">[</span><span class="s2">"scaler"</span><span class="p">],</span> <span class="n">art</span><span class="p">[</span><span class="s2">"model"</span><span class="p">],</span> <span class="n">art</span><span class="p">[</span><span class="s2">"clave"</span><span class="p">],</span> <span class="n">art</span><span class="p">[</span><span class="s2">"threshold"</span><span class="p">]</span>
+<span class="n">ids</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">((</span><span class="n">RESULTS</span> <span class="o">/</span> <span class="s2">"instancias_lime.json"</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Modelo de scikit-learn explicado: </span><span class="si">{</span><span class="n">lm</span><span class="o">.</span><span class="n">NOMBRES</span><span class="p">[</span><span class="n">clave</span><span class="p">]</span><span class="si">}</span><span class="s2"> · umbral de decisión (F1 fuera de pliegue) = </span><span class="si">{</span><span class="n">THR</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">predict_df</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""DataFrame de variables crudas -&gt; probabilidad de incumplimiento (preprocesamiento + modelo)."""</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">prep</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">lc</span><span class="o">.</span><span class="n">FEATURES</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">scaler</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">scaler</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">modelo</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">x</span><span class="p">)[:,</span> <span class="mi">1</span><span class="p">]</span>
+
+
+<span class="n">casos</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"Falso negativo"</span><span class="p">:</span> <span class="n">ids</span><span class="p">[</span><span class="s2">"FN"</span><span class="p">][</span><span class="s2">"id"</span><span class="p">],</span> <span class="s2">"Falso positivo"</span><span class="p">:</span> <span class="n">ids</span><span class="p">[</span><span class="s2">"FP"</span><span class="p">][</span><span class="s2">"id"</span><span class="p">]}</span>
+<span class="n">filas</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">test</span><span class="p">[</span><span class="n">test</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]</span> <span class="o">==</span> <span class="n">v</span><span class="p">]</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">casos</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+<span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">filas</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">predict_df</span><span class="p">(</span><span class="n">f</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">: préstamo </span><span class="si">{</span><span class="n">casos</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="si">}</span><span class="s2"> · probabilidad del modelo de scikit-learn = </span><span class="si">{</span><span class="n">p</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> · realidad: "</span>
+          <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'incumplió'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">f</span><span class="p">[</span><span class="s1">'default'</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">'pagó'</span><span class="si">}</span><span class="s2"> · predijo </span><span class="si">{</span><span class="s1">'incumple'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">p</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="n">THR</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">'paga'</span><span class="si">}</span><span class="s2"> (umbral </span><span class="si">{</span><span class="n">THR</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</details>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Modelo de scikit-learn explicado: Gradient boosting · umbral de decisión (F1 fuera de pliegue) = 0.224
+Falso negativo: préstamo 36099806 · probabilidad del modelo de scikit-learn = 0.020 · realidad: incumplió · predijo paga (umbral 0.224)
+Falso positivo: préstamo 55961482 · probabilidad del modelo de scikit-learn = 0.826 · realidad: pagó · predijo incumple (umbral 0.224)
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="construccion-del-explicador">
+<h2>4.2 Construcción del explicador<a class="headerlink" href="#construccion-del-explicador" title="Permalink to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">LimeTabularExplainer</span></code> necesita <strong>datos de referencia</strong> para conocer la distribución de cada variable
+(cuartiles para discretizar las continuas, frecuencias de las categorías). Se usan 20 000 filas de
+<strong>entrenamiento</strong> al azar (no del conjunto de prueba). Estos datos <strong>no</strong> entrenan nada: solo describen cómo suelen ser
+las variables.</p>
+<div class="cell tag_hide-input docutils container">
+<details class="hide above-input">
+<summary aria-label="Toggle hidden content">
+<span class="collapsed">Mostrar el código</span>
+<span class="expanded">Ocultar el código</span>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ref</span> <span class="o">=</span> <span class="n">train</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="mi">20_000</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">lc</span><span class="o">.</span><span class="n">SEED</span><span class="p">)</span>
+<span class="n">adapter</span> <span class="o">=</span> <span class="n">lc</span><span class="o">.</span><span class="n">LimeAdapter</span><span class="p">(</span><span class="n">ref</span><span class="p">,</span> <span class="n">predict_df</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">filas</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
+</pre></div>
+</div>
+</div>
+</details>
+</div>
+</section>
+<section id="explicacion-de-los-dos-errores-scikit-learn">
+<h2>4.3 Explicación de los dos errores (scikit-learn)<a class="headerlink" href="#explicacion-de-los-dos-errores-scikit-learn" title="Permalink to this heading">#</a></h2>
+<div class="cell tag_hide-input docutils container">
+<details class="hide above-input">
+<summary aria-label="Toggle hidden content">
+<span class="collapsed">Mostrar el código</span>
+<span class="expanded">Ocultar el código</span>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">explicaciones</span><span class="p">,</span> <span class="n">tiempos</span> <span class="o">=</span> <span class="p">{},</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">filas</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">explicaciones</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">adapter</span><span class="o">.</span><span class="n">explain</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">num_features</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">num_samples</span><span class="o">=</span><span class="mi">5000</span><span class="p">)</span>
+    <span class="n">tiempos</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t0</span>
+    <span class="n">e</span> <span class="o">=</span> <span class="n">explicaciones</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">=== </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2"> (préstamo </span><span class="si">{</span><span class="n">casos</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="si">}</span><span class="s2">) · explicación calculada en </span><span class="si">{</span><span class="n">tiempos</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> s ==="</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Probabilidad del modelo: </span><span class="si">{</span><span class="n">predict_df</span><span class="p">(</span><span class="n">f</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> · predicción del modelo lineal local: "</span>
+          <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">local_pred</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> · R² local = </span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">score</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">display</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">as_list</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">"condición de la variable"</span><span class="p">,</span> <span class="s2">"peso (hacia 'incumple' si &gt; 0)"</span><span class="p">]))</span>
+</pre></div>
+</div>
+</div>
+</details>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>=== Falso negativo (préstamo 36099806) · explicación calculada en 0.1 s ===
+Probabilidad del modelo: 0.020 · predicción del modelo lineal local: -0.046 · R² local = 0.501
+</pre></div>
+</div>
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>condición de la variable</th>
+      <th>peso (hacia 'incumple' si &gt; 0)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>int_rate &lt;= 9.75</td>
+      <td>-0.1234</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>term_months &lt;= 36.00</td>
+      <td>-0.0807</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>fico_range_high &gt; 714.00</td>
+      <td>-0.0410</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>dti &lt;= 11.89</td>
+      <td>-0.0364</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>home_ownership=MORTGAGE</td>
+      <td>-0.0298</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>open_acc &lt;= 8.00</td>
+      <td>-0.0220</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>inq_last_6mths &lt;= 0.00</td>
+      <td>-0.0183</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>annual_inc &gt; 90000.00</td>
+      <td>-0.0164</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>revol_bal &gt; 20100.25</td>
+      <td>-0.0156</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>1.00 &lt; mort_acc &lt;= 3.00</td>
+      <td>-0.0144</td>
+    </tr>
+  </tbody>
+</table>
+</div></div><div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>=== Falso positivo (préstamo 55961482) · explicación calculada en 0.1 s ===
+Probabilidad del modelo: 0.826 · predicción del modelo lineal local: 0.367 · R² local = 0.584
+</pre></div>
+</div>
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>condición de la variable</th>
+      <th>peso (hacia 'incumple' si &gt; 0)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>int_rate &gt; 15.88</td>
+      <td>0.1380</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>term_months &gt; 36.00</td>
+      <td>0.0858</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>fico_range_high &gt; 714.00</td>
+      <td>-0.0388</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>dti &lt;= 11.89</td>
+      <td>-0.0376</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>home_ownership=RENT</td>
+      <td>0.0287</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>annual_inc &gt; 90000.00</td>
+      <td>-0.0236</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>loan_amnt &gt; 20000.00</td>
+      <td>0.0217</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>inq_last_6mths &gt; 1.00</td>
+      <td>0.0200</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>mort_acc &lt;= 0.00</td>
+      <td>0.0185</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>revol_bal &lt;= 5920.00</td>
+      <td>0.0164</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<div class="cell tag_hide-input docutils container">
+<details class="hide above-input">
+<summary aria-label="Toggle hidden content">
+<span class="collapsed">Mostrar el código</span>
+<span class="expanded">Ocultar el código</span>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mf">5.2</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">explicaciones</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+    <span class="n">lista</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">as_list</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="mi">1</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">pesos</span> <span class="o">=</span> <span class="p">[</span><span class="n">w</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">lista</span><span class="p">]</span>
+    <span class="n">a</span><span class="o">.</span><span class="n">barh</span><span class="p">([</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">lista</span><span class="p">],</span> <span class="n">pesos</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="p">[</span><span class="s2">"#c0392b"</span> <span class="k">if</span> <span class="n">w</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="s2">"#2e8b57"</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">pesos</span><span class="p">])</span>
+    <span class="n">a</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"black"</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">0.8</span><span class="p">)</span>
+    <span class="n">a</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2"> · scikit-learn (</span><span class="si">{</span><span class="n">lm</span><span class="o">.</span><span class="n">NOMBRES</span><span class="p">[</span><span class="n">clave</span><span class="p">]</span><span class="si">}</span><span class="s2">)</span><span class="se">\n</span><span class="s2">rojo: empuja hacia 'incumple' · verde: hacia 'paga'"</span><span class="p">,</span> <span class="n">xlabel</span><span class="o">=</span><span class="s2">"peso LIME"</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</details>
+<div class="cell_output docutils container">
+<a class="reference internal image-reference" href="../_images/521f9cb68da708d8ede802f149ac2d69b50b91028f786b4ce6992a6ae8bcb9b1.png"><img alt="../_images/521f9cb68da708d8ede802f149ac2d69b50b91028f786b4ce6992a6ae8bcb9b1.png" src="../_images/521f9cb68da708d8ede802f149ac2d69b50b91028f786b4ce6992a6ae8bcb9b1.png" style="width: 100%;" /></a>
+</div>
+</div>
+<p><strong>Cómo se lee.</strong> Cada barra es una condición de una variable («int_rate &gt; 15.88») y su peso: rojo
+aumenta la probabilidad de incumplimiento, verde la reduce, para ese préstamo. R² local indica qué
+tan bien el modelo lineal simple imita al modelo original cerca de esa instancia.</p>
+<div class="admonition important">
+<p class="admonition-title">Importante</p>
+<p>LIME explica <strong>al modelo</strong>, no a la realidad del préstamo: los pesos describen qué llevó al modelo a
+dar esa probabilidad, no una relación de causa y efecto. La fidelidad local aquí es moderada
+(R² entre 0.50 y 0.58 en scikit-learn, entre 0.51 y 0.55 en PySpark), así que estas explicaciones son
+descriptivas y no deben usarse como justificación causal, ni como base única de una decisión de
+crédito individual. Además, el modelo lineal local no reproduce bien la probabilidad del modelo en todos
+los casos: para el falso positivo predice 0.37 frente a 0.83 del modelo, y para el falso negativo llega a
+un valor negativo (−0.05).</p>
+</div>
+</section>
+<section id="es-estable-la-explicacion-limitacion-de-lime">
+<h2>4.4 ¿Es estable la explicación? (limitación de LIME)<a class="headerlink" href="#es-estable-la-explicacion-limitacion-de-lime" title="Permalink to this heading">#</a></h2>
+<p>LIME <strong>muestrea al azar</strong>: dos ejecuciones sobre el mismo préstamo pueden dar explicaciones algo
+distintas. Se repite 5 veces el falso negativo con distinta semilla y se compara qué variables
+aparecen entre las 5 más importantes.</p>
+<div class="cell tag_hide-input docutils container">
+<details class="hide above-input">
+<summary aria-label="Toggle hidden content">
+<span class="collapsed">Mostrar el código</span>
+<span class="expanded">Ocultar el código</span>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">lime.lime_tabular</span><span class="w"> </span><span class="kn">import</span> <span class="n">LimeTabularExplainer</span>  <span class="c1"># noqa: E402</span>
+
+<span class="n">fila</span> <span class="o">=</span> <span class="n">filas</span><span class="p">[</span><span class="s2">"Falso negativo"</span><span class="p">]</span>
+<span class="n">top</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">seed</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
+    <span class="n">ex</span> <span class="o">=</span> <span class="n">LimeTabularExplainer</span><span class="p">(</span><span class="n">adapter</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">ref</span><span class="p">),</span> <span class="n">feature_names</span><span class="o">=</span><span class="n">lc</span><span class="o">.</span><span class="n">FEATURES</span><span class="p">,</span> <span class="n">categorical_features</span><span class="o">=</span><span class="n">adapter</span><span class="o">.</span><span class="n">cat_idx</span><span class="p">,</span>
+                              <span class="n">categorical_names</span><span class="o">=</span><span class="p">{</span><span class="n">lc</span><span class="o">.</span><span class="n">FEATURES</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">c</span><span class="p">):</span> <span class="n">adapter</span><span class="o">.</span><span class="n">levels</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">lc</span><span class="o">.</span><span class="n">CATEGORICAL</span><span class="p">},</span>
+                              <span class="n">class_names</span><span class="o">=</span><span class="p">[</span><span class="s2">"pagado"</span><span class="p">,</span> <span class="s2">"incumplido"</span><span class="p">],</span> <span class="n">discretize_continuous</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span>
+    <span class="n">e</span> <span class="o">=</span> <span class="n">ex</span><span class="o">.</span><span class="n">explain_instance</span><span class="p">(</span><span class="n">adapter</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">fila</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="n">adapter</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,),</span> <span class="n">num_features</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">num_samples</span><span class="o">=</span><span class="mi">5000</span><span class="p">)</span>
+    <span class="n">top</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">lc</span><span class="o">.</span><span class="n">FEATURES</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">as_map</span><span class="p">()[</span><span class="mi">1</span><span class="p">],</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="o">-</span><span class="nb">abs</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">]))])</span>
+<span class="n">tabla_est</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">top</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="sa">f</span><span class="s2">"semilla </span><span class="si">{</span><span class="n">s</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">)],</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="sa">f</span><span class="s2">"top </span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">)])</span>
+<span class="n">display</span><span class="p">(</span><span class="n">tabla_est</span><span class="p">)</span>
+<span class="n">freq</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="n">v</span> <span class="k">for</span> <span class="n">fila_</span> <span class="ow">in</span> <span class="n">top</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">fila_</span><span class="p">])</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Frecuencia con la que cada variable aparece entre las 5 principales (de 5 ejecuciones):"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">freq</span><span class="o">.</span><span class="n">to_string</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+</details>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>top 1</th>
+      <th>top 2</th>
+      <th>top 3</th>
+      <th>top 4</th>
+      <th>top 5</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>semilla 0</th>
+      <td>int_rate</td>
+      <td>term_months</td>
+      <td>fico_range_high</td>
+      <td>dti</td>
+      <td>home_ownership</td>
+    </tr>
+    <tr>
+      <th>semilla 1</th>
+      <td>int_rate</td>
+      <td>term_months</td>
+      <td>fico_range_high</td>
+      <td>dti</td>
+      <td>home_ownership</td>
+    </tr>
+    <tr>
+      <th>semilla 2</th>
+      <td>int_rate</td>
+      <td>term_months</td>
+      <td>fico_range_high</td>
+      <td>dti</td>
+      <td>home_ownership</td>
+    </tr>
+    <tr>
+      <th>semilla 3</th>
+      <td>int_rate</td>
+      <td>term_months</td>
+      <td>fico_range_high</td>
+      <td>dti</td>
+      <td>home_ownership</td>
+    </tr>
+    <tr>
+      <th>semilla 4</th>
+      <td>int_rate</td>
+      <td>term_months</td>
+      <td>fico_range_high</td>
+      <td>dti</td>
+      <td>home_ownership</td>
+    </tr>
+  </tbody>
+</table>
+</div></div><div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Frecuencia con la que cada variable aparece entre las 5 principales (de 5 ejecuciones):
+int_rate           5
+term_months        5
+fico_range_high    5
+dti                5
+home_ownership     5
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="de-lo-local-a-lo-global-agregando-muchas-explicaciones">
+<h2>4.5 De lo local a lo global (agregando muchas explicaciones)<a class="headerlink" href="#de-lo-local-a-lo-global-agregando-muchas-explicaciones" title="Permalink to this heading">#</a></h2>
+<p>LIME explica <strong>un préstamo a la vez</strong>. Para ver qué variables importan <em>en general</em> se promedia el valor
+absoluto del peso sobre 60 préstamos de prueba al azar.</p>
+<div class="cell tag_hide-input docutils container">
+<details class="hide above-input">
+<summary aria-label="Toggle hidden content">
+<span class="collapsed">Mostrar el código</span>
+<span class="expanded">Ocultar el código</span>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">muestra</span> <span class="o">=</span> <span class="n">test</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="mi">60</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">lc</span><span class="o">.</span><span class="n">SEED</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">acum</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">lc</span><span class="o">.</span><span class="n">FEATURES</span><span class="p">)</span>
+<span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">muestra</span><span class="p">)):</span>
+    <span class="n">e</span> <span class="o">=</span> <span class="n">adapter</span><span class="o">.</span><span class="n">explain</span><span class="p">(</span><span class="n">muestra</span><span class="o">.</span><span class="n">iloc</span><span class="p">[[</span><span class="n">i</span><span class="p">]],</span> <span class="n">num_features</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">lc</span><span class="o">.</span><span class="n">FEATURES</span><span class="p">),</span> <span class="n">num_samples</span><span class="o">=</span><span class="mi">2000</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">as_map</span><span class="p">()[</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="n">acum</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">+=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">w</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"60 explicaciones en </span><span class="si">{</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">t0</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> s"</span><span class="p">)</span>
+<span class="n">acum</span> <span class="o">=</span> <span class="p">(</span><span class="n">acum</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">muestra</span><span class="p">))</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mf">5.5</span><span class="p">))</span>
+<span class="n">acum</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span><span class="o">.</span><span class="n">iloc</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">barh</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"#3b6ea5"</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">"Importancia global aproximada con LIME (media de |peso| en 60 préstamos)"</span><span class="p">,</span> <span class="n">xlabel</span><span class="o">=</span><span class="s2">"|peso| medio"</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</details>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>60 explicaciones en 3 s
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="../_images/29bcece82324e8ceff5b93454ac9b1f1bd52f1efbd79946576218f6f5aa03b2c.png"><img alt="../_images/29bcece82324e8ceff5b93454ac9b1f1bd52f1efbd79946576218f6f5aa03b2c.png" src="../_images/29bcece82324e8ceff5b93454ac9b1f1bd52f1efbd79946576218f6f5aa03b2c.png" style="width: 100%;" /></a>
+</div>
+</div>
+</section>
+<section id="los-mismos-prestamos-con-el-modelo-de-pyspark">
+<h2>4.6 Los mismos préstamos con el modelo de PySpark<a class="headerlink" href="#los-mismos-prestamos-con-el-modelo-de-pyspark" title="Permalink to this heading">#</a></h2>
+<p>La sección 3.9 aplicó LIME <strong>dentro de la sesión de Spark</strong> al modelo de mayor AUC de PySpark entre los que
+dan probabilidades, con <strong>los mismos dos préstamos</strong> y los mismos parámetros de LIME (5 000 muestras
+perturbadas, 10 variables). Aquí se comparan las dos explicaciones.</p>
+<div class="cell tag_hide-input docutils container">
+<details class="hide above-input">
+<summary aria-label="Toggle hidden content">
+<span class="collapsed">Mostrar el código</span>
+<span class="expanded">Ocultar el código</span>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sp</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">((</span><span class="n">RESULTS</span> <span class="o">/</span> <span class="s2">"lime_spark.json"</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Modelo de PySpark explicado: </span><span class="si">{</span><span class="n">lm</span><span class="o">.</span><span class="n">NOMBRES</span><span class="p">[</span><span class="n">sp</span><span class="p">[</span><span class="s1">'modelo'</span><span class="p">]]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">9</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">fila_ax</span><span class="p">,</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">nombre</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="p">((</span><span class="s2">"FN"</span><span class="p">,</span> <span class="s2">"Falso negativo"</span><span class="p">),</span> <span class="p">(</span><span class="s2">"FP"</span><span class="p">,</span> <span class="s2">"Falso positivo"</span><span class="p">))):</span>
+    <span class="n">e_sk</span> <span class="o">=</span> <span class="n">explicaciones</span><span class="p">[</span><span class="n">nombre</span><span class="p">]</span><span class="o">.</span><span class="n">as_list</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="mi">1</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">e_sp</span> <span class="o">=</span> <span class="n">sp</span><span class="p">[</span><span class="s2">"instancias"</span><span class="p">][</span><span class="n">k</span><span class="p">][</span><span class="s2">"pesos"</span><span class="p">][::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">lista</span><span class="p">,</span> <span class="n">titulo</span> <span class="ow">in</span> <span class="p">((</span><span class="n">fila_ax</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">e_sk</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">nombre</span><span class="si">}</span><span class="s2"> · scikit-learn (</span><span class="si">{</span><span class="n">lm</span><span class="o">.</span><span class="n">NOMBRES</span><span class="p">[</span><span class="n">clave</span><span class="p">]</span><span class="si">}</span><span class="s2">)"</span><span class="p">),</span>
+                             <span class="p">(</span><span class="n">fila_ax</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">e_sp</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">nombre</span><span class="si">}</span><span class="s2"> · PySpark (</span><span class="si">{</span><span class="n">lm</span><span class="o">.</span><span class="n">NOMBRES</span><span class="p">[</span><span class="n">sp</span><span class="p">[</span><span class="s1">'modelo'</span><span class="p">]]</span><span class="si">}</span><span class="s2">)"</span><span class="p">)):</span>
+        <span class="n">pesos</span> <span class="o">=</span> <span class="p">[</span><span class="n">w</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">lista</span><span class="p">]</span>
+        <span class="n">a</span><span class="o">.</span><span class="n">barh</span><span class="p">([</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">lista</span><span class="p">],</span> <span class="n">pesos</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="p">[</span><span class="s2">"#c0392b"</span> <span class="k">if</span> <span class="n">w</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="s2">"#2e8b57"</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">pesos</span><span class="p">])</span>
+        <span class="n">a</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"black"</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">0.8</span><span class="p">)</span>
+        <span class="n">a</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="n">titulo</span><span class="p">,</span> <span class="n">xlabel</span><span class="o">=</span><span class="s2">"peso LIME"</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_vars</span><span class="p">(</span><span class="n">lista</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Nombres de las variables (sin la condición) de una explicación de LIME."""</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">cond</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">lista</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">lc</span><span class="o">.</span><span class="n">FEATURES</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">cond</span><span class="p">:</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+                <span class="k">break</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+
+<span class="n">coinc</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">nombre</span> <span class="ow">in</span> <span class="p">((</span><span class="s2">"FN"</span><span class="p">,</span> <span class="s2">"Falso negativo"</span><span class="p">),</span> <span class="p">(</span><span class="s2">"FP"</span><span class="p">,</span> <span class="s2">"Falso positivo"</span><span class="p">)):</span>
+    <span class="n">v_sk</span><span class="p">,</span> <span class="n">v_sp</span> <span class="o">=</span> <span class="n">_vars</span><span class="p">(</span><span class="n">explicaciones</span><span class="p">[</span><span class="n">nombre</span><span class="p">]</span><span class="o">.</span><span class="n">as_list</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="mi">1</span><span class="p">)),</span> <span class="n">_vars</span><span class="p">(</span><span class="n">sp</span><span class="p">[</span><span class="s2">"instancias"</span><span class="p">][</span><span class="n">k</span><span class="p">][</span><span class="s2">"pesos"</span><span class="p">])</span>
+    <span class="n">coinc</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">"instancia"</span><span class="p">:</span> <span class="n">nombre</span><span class="p">,</span> <span class="s2">"variables en común (de 10)"</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">v_sk</span><span class="p">)</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">v_sp</span><span class="p">)),</span>
+                  <span class="s2">"R² local scikit-learn"</span><span class="p">:</span> <span class="n">explicaciones</span><span class="p">[</span><span class="n">nombre</span><span class="p">]</span><span class="o">.</span><span class="n">score</span><span class="p">,</span> <span class="s2">"R² local PySpark"</span><span class="p">:</span> <span class="n">sp</span><span class="p">[</span><span class="s2">"instancias"</span><span class="p">][</span><span class="n">k</span><span class="p">][</span><span class="s2">"r2_local"</span><span class="p">],</span>
+                  <span class="s2">"prob. scikit-learn"</span><span class="p">:</span> <span class="n">ids</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="s2">"p_sklearn"</span><span class="p">],</span> <span class="s2">"prob. PySpark"</span><span class="p">:</span> <span class="n">ids</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="s2">"p_spark"</span><span class="p">],</span>
+                  <span class="s2">"tiempo scikit-learn (s)"</span><span class="p">:</span> <span class="n">tiempos</span><span class="p">[</span><span class="n">nombre</span><span class="p">],</span> <span class="s2">"tiempo PySpark (s)"</span><span class="p">:</span> <span class="n">sp</span><span class="p">[</span><span class="s2">"instancias"</span><span class="p">][</span><span class="n">k</span><span class="p">][</span><span class="s2">"tiempo_s"</span><span class="p">]})</span>
+<span class="n">display</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">coinc</span><span class="p">)</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">"instancia"</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+</details>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Modelo de PySpark explicado: Gradient boosting
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="../_images/ea9c81f442788fab08cdf2012bae9d935819ef9f2fab78dc5bb3d6048856b54a.png"><img alt="../_images/ea9c81f442788fab08cdf2012bae9d935819ef9f2fab78dc5bb3d6048856b54a.png" src="../_images/ea9c81f442788fab08cdf2012bae9d935819ef9f2fab78dc5bb3d6048856b54a.png" style="width: 100%;" /></a>
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>variables en común (de 10)</th>
+      <th>R² local scikit-learn</th>
+      <th>R² local PySpark</th>
+      <th>prob. scikit-learn</th>
+      <th>prob. PySpark</th>
+      <th>tiempo scikit-learn (s)</th>
+      <th>tiempo PySpark (s)</th>
+    </tr>
+    <tr>
+      <th>instancia</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>Falso negativo</th>
+      <td>9</td>
+      <td>0.5008</td>
+      <td>0.5100</td>
+      <td>0.0201</td>
+      <td>0.0221</td>
+      <td>0.0998</td>
+      <td>0.5591</td>
+    </tr>
+    <tr>
+      <th>Falso positivo</th>
+      <td>8</td>
+      <td>0.5842</td>
+      <td>0.5538</td>
+      <td>0.8256</td>
+      <td>0.8631</td>
+      <td>0.0713</td>
+      <td>0.5573</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+</section>
+<section id="lime-y-pyspark-que-cambia-y-que-limita">
+<h2>4.7 LIME y PySpark: qué cambia y qué limita<a class="headerlink" href="#lime-y-pyspark-que-cambia-y-que-limita" title="Permalink to this heading">#</a></h2>
+<p>LIME <strong>no es distribuido</strong>: corre en la memoria de un solo proceso y necesita una función
+<code class="docutils literal notranslate"><span class="pre">predict_proba</span></code> a la que llamar miles de veces. Con un modelo de PySpark eso significa:</p>
+<ol class="arabic simple">
+<li><p><strong>Cada llamada es un viaje a la JVM</strong>: crear un DataFrame de Spark con las muestras perturbadas,
+aplicar el preprocesamiento y el modelo, y traer las probabilidades de vuelta. Es el caso más
+desfavorable para Spark (mucha latencia fija, poco cómputo por llamada). <strong>Sin Apache Arrow esa
+latencia llegó a ≈ 7–8 minutos por llamada</strong> (capítulo 3b).</p></li>
+<li><p><strong>Datos de referencia locales</strong>: LIME necesita una muestra de los datos en el driver para conocer las
+distribuciones. Con datos realmente masivos (que no caben en memoria) hay que recurrir a una
+<strong>muestra</strong> (aquí, 20 000 filas), lo que contradice el principio de no mover el conjunto de datos al <em>driver</em>.</p></li>
+<li><p><strong>Perturbaciones sin correlaciones</strong>: LIME muestrea cada variable por separado y puede crear préstamos
+imposibles (p. ej. tasa muy baja con FICO muy bajo), sobre los que el modelo nunca fue entrenado.</p></li>
+<li><p><strong>Costo por instancia</strong>: aunque en la sección 4.4 el orden de las variables no cambió entre semillas,
+LIME es aleatorio por diseño y hay que ejecutarlo para <strong>cada</strong> instancia; no escala a millones de
+préstamos.</p></li>
+</ol>
+<p>En entornos distribuidos suelen preferirse explicaciones <strong>específicas de árboles</strong> (por ejemplo valores
+SHAP para árboles; Lundberg <em>et al.</em>, 2020), que se calculan a partir de la estructura del propio
+modelo, sin perturbar los datos.</p>
+<div class="cell tag_hide-input docutils container">
+<details class="hide above-input">
+<summary aria-label="Toggle hidden content">
+<span class="collapsed">Mostrar el código</span>
+<span class="expanded">Ocultar el código</span>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">res_sk</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">((</span><span class="n">RESULTS</span> <span class="o">/</span> <span class="s2">"sk_resultados.json"</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">())</span>
+<span class="n">lat</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">"scikit-learn"</span><span class="p">:</span> <span class="n">res_sk</span><span class="p">[</span><span class="s2">"latencia_predict_s"</span><span class="p">],</span> <span class="s2">"PySpark (con Arrow)"</span><span class="p">:</span> <span class="n">sp</span><span class="p">[</span><span class="s2">"latencia_predict_s"</span><span class="p">]})</span>
+<span class="n">lat</span><span class="p">[</span><span class="s2">"PySpark / scikit-learn"</span><span class="p">]</span> <span class="o">=</span> <span class="n">lat</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">lat</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
+<span class="n">lat</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">"filas por llamada"</span>
+<span class="n">display</span><span class="p">(</span><span class="n">lat</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">format</span><span class="p">({</span><span class="n">c</span><span class="p">:</span> <span class="s2">"</span><span class="si">{:.4f}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">c</span> <span class="o">!=</span> <span class="s2">"PySpark / scikit-learn"</span> <span class="k">else</span> <span class="s2">"</span><span class="si">{:.0f}</span><span class="s2">×"</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">lat</span><span class="o">.</span><span class="n">columns</span><span class="p">}))</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Cada explicación de LIME hace UNA llamada de 5 000 muestras: scikit-learn ≈ </span><span class="si">{</span><span class="n">lat</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> s · PySpark ≈ </span><span class="si">{</span><span class="n">lat</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> s "</span>
+      <span class="s2">"por préstamo explicado (solo la predicción)."</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</details>
+<div class="cell_output docutils container">
+<div class="output text_html"><style type="text/css">
+</style>
+<table id="T_ba40b">
+  <thead>
+    <tr>
+      <th class="blank level0" >&nbsp;</th>
+      <th id="T_ba40b_level0_col0" class="col_heading level0 col0" >scikit-learn</th>
+      <th id="T_ba40b_level0_col1" class="col_heading level0 col1" >PySpark (con Arrow)</th>
+      <th id="T_ba40b_level0_col2" class="col_heading level0 col2" >PySpark / scikit-learn</th>
+    </tr>
+    <tr>
+      <th class="index_name level0" >filas por llamada</th>
+      <th class="blank col0" >&nbsp;</th>
+      <th class="blank col1" >&nbsp;</th>
+      <th class="blank col2" >&nbsp;</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th id="T_ba40b_level0_row0" class="row_heading level0 row0" >1</th>
+      <td id="T_ba40b_row0_col0" class="data row0 col0" >0.0002</td>
+      <td id="T_ba40b_row0_col1" class="data row0 col1" >0.2870</td>
+      <td id="T_ba40b_row0_col2" class="data row0 col2" >1188×</td>
+    </tr>
+    <tr>
+      <th id="T_ba40b_level0_row1" class="row_heading level0 row1" >100</th>
+      <td id="T_ba40b_row1_col0" class="data row1 col0" >0.0006</td>
+      <td id="T_ba40b_row1_col1" class="data row1 col1" >0.2746</td>
+      <td id="T_ba40b_row1_col2" class="data row1 col2" >489×</td>
+    </tr>
+    <tr>
+      <th id="T_ba40b_level0_row2" class="row_heading level0 row2" >5000</th>
+      <td id="T_ba40b_row2_col0" class="data row2 col0" >0.0135</td>
+      <td id="T_ba40b_row2_col1" class="data row2 col1" >0.5108</td>
+      <td id="T_ba40b_row2_col2" class="data row2 col2" >38×</td>
+    </tr>
+  </tbody>
+</table>
+</div><div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Cada explicación de LIME hace UNA llamada de 5 000 muestras: scikit-learn ≈ 0.01 s · PySpark ≈ 0.51 s por préstamo explicado (solo la predicción).
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./notebooks"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="03c_pyspark_escala_ajustada.html"
+       title="página anterior">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">anterior</p>
+        <p class="prev-next-title">3c · PySpark con el paralelismo ajustado al equipo (análisis de sensibilidad)</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="05_estadistica.html"
+       title="siguiente página">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">siguiente</p>
+        <p class="prev-next-title">5 · Comparación estadística de los modelos: DeLong, McNemar y bootstrap pareado</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contenido
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#datos-y-modelo-de-scikit-learn">4.1 Datos y modelo de scikit-learn</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#construccion-del-explicador">4.2 Construcción del explicador</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#explicacion-de-los-dos-errores-scikit-learn">4.3 Explicación de los dos errores (scikit-learn)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#es-estable-la-explicacion-limitacion-de-lime">4.4 ¿Es estable la explicación? (limitación de LIME)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#de-lo-local-a-lo-global-agregando-muchas-explicaciones">4.5 De lo local a lo global (agregando muchas explicaciones)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#los-mismos-prestamos-con-el-modelo-de-pyspark">4.6 Los mismos préstamos con el modelo de PySpark</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#lime-y-pyspark-que-cambia-y-que-limita">4.7 LIME y PySpark: qué cambia y qué limita</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+Por Ana Galván Arias, Valeria Oñate López, María José Ruiz Arias
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2026.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

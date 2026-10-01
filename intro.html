@@ -1,0 +1,700 @@
+
+
+<!DOCTYPE html>
+
+
+<html lang="es" data-content_root="" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>Incumplimiento de préstamos en Lending Club: scikit-learn frente a PySpark &#8212; Incumplimiento de préstamos en Lending Club: scikit-learn frente a PySpark</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" href="_static/styles/sphinx-book-theme.css?digest=14f4ca6b54d191a8c7657f6c759bf11a5fb86285" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/togglebutton.css" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css" />
+    <link rel="stylesheet" type="text/css" href="_static/design-style.4045f2051d55cab465a707391d5b2007.min.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/clipboard.min.js"></script>
+    <script src="_static/copybutton.js"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?digest=5a5c038af52cf7bc1a1ec88eea08e6366ee68824"></script>
+    <script>let toggleHintShow = 'Haz clic para mostrar';</script>
+    <script>let toggleHintHide = 'Haz clic para ocultar';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="_static/togglebutton.js"></script>
+    <script src="_static/translations.js"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="_static/design-tabs.js"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"
+const thebe_selector = ".thebe,.cell"
+const thebe_selector_input = "pre"
+const thebe_selector_output = ".output, .cell_output"
+</script>
+    <script async="async" src="_static/sphinx-thebe.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'intro';</script>
+    <link rel="index" title="Índice" href="genindex.html" />
+    <link rel="search" title="Búsqueda" href="search.html" />
+    <link rel="next" title="1 · Análisis exploratorio de datos (EDA)" href="notebooks/01_eda.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="es"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Saltar al contenido principal</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Volver arriba</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Advertencia de versión"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="#">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Incumplimiento de préstamos en Lending Club: scikit-learn frente a PySpark</p>
+  
+</a></div>
+        <div class="sidebar-primary-item"><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1 current active">
+                <a class="reference internal" href="#">
+                    Incumplimiento de préstamos en Lending Club: scikit-learn frente a PySpark
+                </a>
+            </li>
+        </ul>
+        <ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="notebooks/01_eda.html">1 · Análisis exploratorio de datos (EDA)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/02_sklearn_seis_modelos.html">2 · Preprocesamiento y modelado con scikit-learn (seis modelos)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/03_pyspark_seis_modelos.html">3 · Preprocesamiento y modelado con PySpark (seis modelos)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/03b_pyspark_costos.html">3b · Costos de PySpark: latencia de predicción y efecto de la configuración</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/03c_pyspark_escala_ajustada.html">3c · PySpark con el paralelismo ajustado al equipo (análisis de sensibilidad)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/04_lime.html">4 · Interpretabilidad con LIME</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/05_estadistica.html">5 · Comparación estadística de los modelos: DeLong, McNemar y bootstrap pareado</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/06_comparacion.html">6 · Comparación de resultados: métricas, tiempos y volumen</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reflexion.html">Discusión y conclusiones</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><label class="sidebar-toggle primary-toggle btn btn-sm" for="__primary" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</label></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+<a href="https://github.com/anagalvan7/lending-club-jbook" target="_blank"
+   class="btn btn-sm btn-source-repository-button"
+   title="Repositorio de origen"
+   data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+
+</a>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Descarga esta pagina">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="_sources/intro.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Descargar archivo fuente"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Imprimir en PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Modo de pantalla completa"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="claro/oscuro" aria-label="claro/oscuro" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Búsqueda" aria-label="Búsqueda" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<label class="sidebar-toggle secondary-toggle btn btn-sm" for="__secondary"title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</label>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Incumplimiento de préstamos en Lending Club: scikit-learn frente a PySpark</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contenido </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#resumen">Resumen</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#datos-y-diseno">Datos y diseño</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#resultados-principales">Resultados principales</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#estructura-del-documento">Estructura del documento</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#decisiones-metodologicas">Decisiones metodológicas</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#limitaciones">Limitaciones</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="incumplimiento-de-prestamos-en-lending-club-scikit-learn-frente-a-pyspark">
+<h1>Incumplimiento de préstamos en Lending Club: scikit-learn frente a PySpark<a class="headerlink" href="#incumplimiento-de-prestamos-en-lending-club-scikit-learn-frente-a-pyspark" title="Permalink to this heading">#</a></h1>
+<p><strong>Ana Galván Arias, Valeria Oñate López, María José Ruiz Arias</strong>
+Septiembre de 2026</p>
+<section id="resumen">
+<h2>Resumen<a class="headerlink" href="#resumen" title="Permalink to this heading">#</a></h2>
+<p>Se compara el desempeño predictivo y el costo computacional de seis modelos de clasificación (regresión
+logística, árbol de decisión, bosque aleatorio, <em>gradient boosting</em>, SVM lineal y Naive Bayes),
+implementados de forma equivalente en scikit-learn y en PySpark, sobre 1 345 310 préstamos de Lending Club
+con desenlace conocido. Los dos motores comparten partición y pliegues de validación cruzada. La
+comparación usa DeLong pareado, la prueba de McNemar y un <em>bootstrap</em> pareado, con corrección de Holm y un
+margen de relevancia práctica fijado de antemano (ΔAUC ≥ 0.005). Los seis modelos alcanzan un AUC entre
+0.69 y 0.72 en ambos entornos (<em>gradient boosting</em>, el mejor, 0.7196 y 0.7189); solo la SVM lineal difiere de
+forma relevante, porque la de scikit-learn converge a una solución degenerada.
+En tiempo, scikit-learn resulta unas 17 veces más rápido que PySpark en una sola máquina de 12 hilos.
+Se documentan además la escalabilidad, el efecto de cada elemento de la configuración de Spark y las
+explicaciones locales con LIME de dos préstamos mal clasificados por ambos entornos. <strong>Palabras clave:</strong>
+incumplimiento crediticio, comparación de motores de cómputo, DeLong pareado, aprendizaje distribuido,
+interpretabilidad local.</p>
+</section>
+<section id="datos-y-diseno">
+<h2>Datos y diseño<a class="headerlink" href="#datos-y-diseno" title="Permalink to this heading">#</a></h2>
+<p>Se predice si un préstamo de Lending Club terminará en incumplimiento (<code class="docutils literal notranslate"><span class="pre">Charged</span> <span class="pre">Off</span></code>) o se pagará por
+completo (<code class="docutils literal notranslate"><span class="pre">Fully</span> <span class="pre">Paid</span></code>) con información disponible en el momento de otorgarlo. El diseño busca que el
+desempeño reportado estime, sin sesgo, el que se obtendría con préstamos nuevos: el conjunto de prueba se
+separa antes de cualquier análisis exploratorio, los hiperparámetros y el umbral se eligen sin tocarlo, y ese
+conjunto no interviene en ninguna decisión de modelado.</p>
+<ul class="simple">
+<li><p><strong>Datos:</strong> préstamos aceptados por Lending Club entre 2007 y el cuarto trimestre de 2018, en la versión
+pública de Kaggle <a class="reference external" href="https://www.kaggle.com/datasets/wordsforthewise/lending-club"><em>All Lending Club loan data</em></a>:
+2 260 701 registros y 151 variables.</p></li>
+<li><p><strong>Población de estudio:</strong> la variable objetivo se define solo para préstamos con desenlace conocido,
+<code class="docutils literal notranslate"><span class="pre">Fully</span> <span class="pre">Paid</span></code> (0) y <code class="docutils literal notranslate"><span class="pre">Charged</span> <span class="pre">Off</span></code> (1): <strong>1 345 310</strong> préstamos. El archivo contiene además 878 317
+préstamos vigentes y 34 252 atrasados o en periodo de gracia, cuyo desenlace aún no se observa, y 2 822
+filas en otros estados; todos se excluyen. Etiquetarlos como pagados sesgaría la variable objetivo y
+reduciría la tasa de incumplimiento aparente del 20.0 % al 11.9 %. La restricción se aplica por igual a
+todas las filas y no es un muestreo: se lee y procesa el archivo completo.</p></li>
+<li><p><strong>Partición:</strong> 80 % / 20 % estratificada, semilla 42: 1 076 248 para entrenamiento y 269 062 para
+prueba, con 3 pliegues de validación cruzada compartidos por ambos motores.</p></li>
+<li><p><strong>Variables:</strong> 21 (17 numéricas, 4 categóricas), elegidas por estar disponibles al otorgar el préstamo,
+no tener más de 30 % de valores faltantes en el entrenamiento (o que su ausencia no dependa del año de
+registro) y no ser redundantes entre sí. Se excluyen 15 columnas generadas después del desembolso, aunque
+algunas tengan un AUC univariado de hasta 0.94: esa capacidad predictiva proviene del propio desenlace y
+no estaría disponible al decidir un préstamo nuevo.</p></li>
+</ul>
+</section>
+<section id="resultados-principales">
+<h2>Resultados principales<a class="headerlink" href="#resultados-principales" title="Permalink to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Modelo</p></th>
+<th class="head"><p>AUC prueba (scikit-learn)</p></th>
+<th class="head"><p>AUC prueba (PySpark)</p></th>
+<th class="head"><p>ΔAUC</p></th>
+<th class="head"><p>Tiempo entren.+CV (scikit-learn)</p></th>
+<th class="head"><p>Tiempo entren.+CV (PySpark)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Regresión logística</p></td>
+<td><p>0.7095</p></td>
+<td><p>0.7095</p></td>
+<td><p>0.00000004 (no significativo)</p></td>
+<td><p>15 s</p></td>
+<td><p>1 h 03 min</p></td>
+</tr>
+<tr class="row-odd"><td><p>Árbol de decisión</p></td>
+<td><p>0.7022</p></td>
+<td><p>0.7004</p></td>
+<td><p>0.0018 (significativo, no relevante)</p></td>
+<td><p>59 s</p></td>
+<td><p>1 h 04 min</p></td>
+</tr>
+<tr class="row-even"><td><p>Bosque aleatorio</p></td>
+<td><p>0.7164</p></td>
+<td><p>0.7152</p></td>
+<td><p>0.0012 (significativo, no relevante)</p></td>
+<td><p>14 min</p></td>
+<td><p>5 h 52 min</p></td>
+</tr>
+<tr class="row-odd"><td><p><em>Gradient boosting</em> (mejor de los seis)</p></td>
+<td><p>0.7196</p></td>
+<td><p>0.7189</p></td>
+<td><p>0.0007 (significativo, no relevante)</p></td>
+<td><p>54 min</p></td>
+<td><p>10 h 07 min</p></td>
+</tr>
+<tr class="row-even"><td><p>SVM lineal</p></td>
+<td><p>0.4956 (solución degenerada)</p></td>
+<td><p>0.5985</p></td>
+<td><p>−0.1029 (significativo y relevante)</p></td>
+<td><p>10 min</p></td>
+<td><p>3 h 36 min</p></td>
+</tr>
+<tr class="row-odd"><td><p>Naive Bayes</p></td>
+<td><p>0.6884</p></td>
+<td><p>0.6883</p></td>
+<td><p>0.0001 (significativo, no relevante)</p></td>
+<td><p>5 s</p></td>
+<td><p>43 min</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Con los seis modelos y el preprocesamiento, el entrenamiento con validación cruzada requirió ≈ 1 h 21 min
+en scikit-learn y ≈ 22 h 32 min en PySpark (≈ 17 veces más), en la misma máquina de 12 hilos.</p>
+<div class="warning admonition">
+<p class="admonition-title">La SVM lineal de scikit-learn no separa las clases en estos datos</p>
+<p>Con <code class="docutils literal notranslate"><span class="pre">LinearSVC(loss=&quot;hinge&quot;)</span></code> el AUC queda en ≈ 0.50, igual que el azar. El <em>solver</em> (<code class="docutils literal notranslate"><span class="pre">liblinear</span></code>)
+converge, en 93 iteraciones y sin advertencias, a coeficientes del orden de 10⁻⁸ y a un intercepto de −1,
+con los tres valores de <code class="docutils literal notranslate"><span class="pre">C</span></code> de la malla. Es la solución degenerada de la SVM con pérdida <em>hinge</em> descrita
+por Rifkin, Pontil y Verri (1999): cuando las clases se solapan mucho y la clase mayoritaria cuadruplica a
+la minoritaria, el punto <em>w</em> = 0, <em>b</em> = −1, que deja a todos los negativos justo sobre el margen, puede ser
+el óptimo del problema regularizado; <code class="docutils literal notranslate"><span class="pre">liblinear</span></code> refuerza el efecto porque también regulariza el
+intercepto. Las puntuaciones resultantes son prácticamente constantes (desviación estándar de 1.8×10⁻¹³),
+así que el AUC de 0.496 equivale al azar, no a un modelo peor que el azar. La SVM de PySpark, que no
+regulariza el intercepto y minimiza la misma pérdida con OWL-QN (un método cuasi-Newton que puede
+detenerse antes del óptimo de una función no diferenciable), sí separa algo las clases (AUC 0.60). Ambas
+diferencias son candidatas a explicar esa brecha, aunque no se aislaron por separado.</p>
+</div>
+<div class="warning admonition">
+<p class="admonition-title">La exactitud (accuracy) no es un criterio adecuado en estos datos</p>
+<p>Con el umbral 0.5, que solo minimiza el error cuando las probabilidades están calibradas y los costos de
+cada error son iguales (condiciones que aquí no se cumplen), los modelos con buen AUC tienen ≈ 80 % de
+exactitud pero detectan muy pocos incumplimientos: un modelo que dijera «todos pagan» tendría también
+≈ 80 %. Por eso se reportan ROC AUC, AUC-PR, sensibilidad (<em>recall</em>), precisión, F1 y MCC, con el umbral elegido a partir de
+predicciones fuera de pliegue del entrenamiento.</p>
+</div>
+</section>
+<section id="estructura-del-documento">
+<h2>Estructura del documento<a class="headerlink" href="#estructura-del-documento" title="Permalink to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Capítulo</p></th>
+<th class="head"><p>Contenido</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>1. Análisis exploratorio</strong></p></td>
+<td><p>Partición primero; calidad de datos, fuga y desbalance con el entrenamiento</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>2. Los seis modelos con scikit-learn</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GridSearchCV</span></code> sin <code class="docutils literal notranslate"><span class="pre">Pipeline</span></code>, 3 pliegues, umbral, métricas, hallazgo de la SVM, importancia, validación temporal, escala</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>3. Los seis modelos con PySpark</strong></p></td>
+<td><p>Configuración de la sesión, <code class="docutils literal notranslate"><span class="pre">CrossValidator</span></code> con los mismos pliegues (<code class="docutils literal notranslate"><span class="pre">foldCol</span></code>), LIME con el mejor modelo de Spark</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>3b. Costos de PySpark</strong></p></td>
+<td><p>Latencia, efecto de cada elemento de la configuración (caché, particiones, pliegues) y escala, con un bosque de referencia</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>3c. Análisis de sensibilidad</strong></p></td>
+<td><p>La misma escala con el paralelismo ajustado a los hilos del equipo utilizado</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>4. LIME</strong></p></td>
+<td><p>Explicación de dos préstamos mal clasificados por ambos entornos, estabilidad, visión global, comparación entre motores</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>5. Comparación estadística</strong></p></td>
+<td><p>DeLong pareado (validado contra la versión directa), McNemar, <em>bootstrap</em> pareado, Holm, margen de relevancia práctica</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>6. Comparación de resultados</strong></p></td>
+<td><p>Métricas, tiempos, curvas ROC/PR, escala, efecto de cada elemento de la configuración, LIME</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Discusión y conclusiones</strong></p></td>
+<td><p>Costo computacional, equivalencia predictiva, significancia frente a relevancia, interpretabilidad, alcance, conclusiones y referencias</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="decisiones-metodologicas">
+<h2>Decisiones metodológicas<a class="headerlink" href="#decisiones-metodologicas" title="Permalink to this heading">#</a></h2>
+<p><strong>Partición antes del análisis exploratorio.</strong> Es habitual explorar el conjunto completo y dividirlo
+después. Aquí se procede al revés porque las decisiones que se toman al explorar (qué variables usar, cómo
+tratar los valores extremos, qué categorías agrupar) incorporan información de los datos que las inspiran;
+si incluyeran el conjunto de prueba, este dejaría de estimar el desempeño con préstamos nuevos. Por eso
+todo análisis que involucra la variable objetivo, las distribuciones o las relaciones entre variables usa
+solo el entrenamiento.</p>
+<p><strong>Exclusión de columnas posteriores al desembolso.</strong> Variables como <code class="docutils literal notranslate"><span class="pre">total_pymnt</span></code> o <code class="docutils literal notranslate"><span class="pre">recoveries</span></code> se
+generan después de que el préstamo ya se está pagando o no, y de hecho codifican el resultado que se
+quiere predecir. Un modelo entrenado con ellas alcanzaría un AUC casi perfecto pero sería inútil: al
+otorgar el préstamo esas columnas todavía no existen. Se auditó el poder predictivo individual de cada una
+para justificar su exclusión con evidencia.</p>
+<p><strong>DeLong pareado, con la covarianza entre los dos AUC.</strong> Los dos modelos que se comparan se evalúan sobre
+las mismas 269 062 observaciones de prueba, así que sus curvas ROC están positivamente correlacionadas
+(entre 0.79 y 1.00 en todos los pares que no incluyen la SVM). Ignorar esa covarianza infla el error
+estándar de la diferencia y resta potencia a la prueba: la vuelve conservadora, no optimista. La versión
+pareada de DeLong, DeLong y Clarke-Pearson (1988) la incorpora; se implementó además en su variante rápida
+(Sun y Xu, 2014, O(n log n)) porque la versión directa es cuadrática y, con este volumen de datos,
+tardaría demasiado, y se validó frente a la versión directa antes de usarla. Ambos entornos comparten también los
+mismos tres pliegues de validación cruzada, para que la selección de hiperparámetros se haga sobre los
+mismos datos; esto no es un requisito de DeLong, que solo exige evaluar sobre las mismas observaciones de
+prueba.</p>
+<p><strong>Métricas independientes de un umbral fijo.</strong> Con una proporción de 80/20 y probabilidades no
+calibradas, un umbral de 0.5 no es un punto de operación razonable. El ROC AUC evalúa la capacidad del
+modelo de ordenar los casos en todos los umbrales posibles; el umbral que sí se necesita para tomar una
+decisión concreta se elige después, con predicciones del propio entrenamiento que el modelo nunca usó para
+entrenarse, maximizando F1 como criterio neutral a falta de costos reales de cada tipo de error.</p>
+</section>
+<section id="limitaciones">
+<h2>Limitaciones<a class="headerlink" href="#limitaciones" title="Permalink to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Con 16 GB de RAM, el bosque más grande agotó la memoria con la configuración de histogramas por defecto;
+se usó <code class="docutils literal notranslate"><span class="pre">maxMemoryInMB</span> <span class="pre">=</span> <span class="pre">64</span></code>, que no cambia el algoritmo pero sí resta velocidad frente a una máquina con
+más memoria disponible.</p></li>
+<li><p>Los tiempos se midieron en una sola máquina (12 hilos lógicos, 16 GB de RAM), con Spark en modo local; la
+comparación no se extiende a un clúster.</p></li>
+<li><p>Los hiperparámetros óptimos del bosque, el <em>gradient boosting</em> y la regresión logística quedaron en el
+extremo de su malla de búsqueda en ambos entornos: el AUC de 0.72 es una cota inferior de lo alcanzable
+con estas familias de modelos, no necesariamente su máximo.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">int_rate</span></code>, la variable más asociada al incumplimiento, la fija Lending Club con su propio modelo de
+riesgo; los resultados que dependen de ella deben leerse como una predicción condicionada a esa tasa ya
+asignada, no como una evaluación de riesgo construida desde cero.</p></li>
+<li><p>No se reporta calibración de las probabilidades (curvas de confiabilidad, <em>Brier score</em>) ni variabilidad
+entre semillas de entrenamiento; ambas quedan como extensión de este trabajo.</p></li>
+<li><p>La SVM de PySpark (AUC 0.60) es débil, aunque no degenerada como la de scikit-learn; ningún modelo de
+este trabajo alcanza un AUC alto, lo que indica que la información disponible al otorgar el préstamo
+predice el incumplimiento solo moderadamente.</p></li>
+</ul>
+</section>
+<div class="toctree-wrapper compound">
+</div>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./."
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="right-next"
+       href="notebooks/01_eda.html"
+       title="siguiente página">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">siguiente</p>
+        <p class="prev-next-title">1 · Análisis exploratorio de datos (EDA)</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contenido
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#resumen">Resumen</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#datos-y-diseno">Datos y diseño</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#resultados-principales">Resultados principales</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#estructura-del-documento">Estructura del documento</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#decisiones-metodologicas">Decisiones metodológicas</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#limitaciones">Limitaciones</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+Por Ana Galván Arias, Valeria Oñate López, María José Ruiz Arias
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2026.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

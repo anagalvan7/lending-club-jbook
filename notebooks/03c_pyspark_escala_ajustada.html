@@ -1,0 +1,703 @@
+
+
+<!DOCTYPE html>
+
+
+<html lang="es" data-content_root="" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>3c · PySpark con el paralelismo ajustado al equipo (análisis de sensibilidad) &#8212; Incumplimiento de préstamos en Lending Club: scikit-learn frente a PySpark</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" href="../_static/styles/sphinx-book-theme.css?digest=14f4ca6b54d191a8c7657f6c759bf11a5fb86285" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-thebe.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/design-style.4045f2051d55cab465a707391d5b2007.min.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?digest=5a5c038af52cf7bc1a1ec88eea08e6366ee68824"></script>
+    <script>let toggleHintShow = 'Haz clic para mostrar';</script>
+    <script>let toggleHintHide = 'Haz clic para ocultar';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js"></script>
+    <script src="../_static/translations.js"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../_static/design-tabs.js"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"
+const thebe_selector = ".thebe,.cell"
+const thebe_selector_input = "pre"
+const thebe_selector_output = ".output, .cell_output"
+</script>
+    <script async="async" src="../_static/sphinx-thebe.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'notebooks/03c_pyspark_escala_ajustada';</script>
+    <link rel="index" title="Índice" href="../genindex.html" />
+    <link rel="search" title="Búsqueda" href="../search.html" />
+    <link rel="next" title="4 · Interpretabilidad con LIME" href="04_lime.html" />
+    <link rel="prev" title="3b · Costos de PySpark: latencia de predicción y efecto de la configuración" href="03b_pyspark_costos.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="es"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Saltar al contenido principal</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Volver arriba</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Advertencia de versión"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../intro.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Incumplimiento de préstamos en Lending Club: scikit-learn frente a PySpark</p>
+  
+</a></div>
+        <div class="sidebar-primary-item"><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../intro.html">
+                    Incumplimiento de préstamos en Lending Club: scikit-learn frente a PySpark
+                </a>
+            </li>
+        </ul>
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="01_eda.html">1 · Análisis exploratorio de datos (EDA)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="02_sklearn_seis_modelos.html">2 · Preprocesamiento y modelado con scikit-learn (seis modelos)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="03_pyspark_seis_modelos.html">3 · Preprocesamiento y modelado con PySpark (seis modelos)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="03b_pyspark_costos.html">3b · Costos de PySpark: latencia de predicción y efecto de la configuración</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">3c · PySpark con el paralelismo ajustado al equipo (análisis de sensibilidad)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="04_lime.html">4 · Interpretabilidad con LIME</a></li>
+<li class="toctree-l1"><a class="reference internal" href="05_estadistica.html">5 · Comparación estadística de los modelos: DeLong, McNemar y bootstrap pareado</a></li>
+<li class="toctree-l1"><a class="reference internal" href="06_comparacion.html">6 · Comparación de resultados: métricas, tiempos y volumen</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reflexion.html">Discusión y conclusiones</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><label class="sidebar-toggle primary-toggle btn btn-sm" for="__primary" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</label></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+<a href="https://github.com/anagalvan7/lending-club-jbook" target="_blank"
+   class="btn btn-sm btn-source-repository-button"
+   title="Repositorio de origen"
+   data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+
+</a>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Descarga esta pagina">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/notebooks/03c_pyspark_escala_ajustada.ipynb" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Descargar archivo fuente"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.ipynb</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Imprimir en PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Modo de pantalla completa"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="claro/oscuro" aria-label="claro/oscuro" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Búsqueda" aria-label="Búsqueda" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<label class="sidebar-toggle secondary-toggle btn btn-sm" for="__secondary"title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</label>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>3c · PySpark con el paralelismo ajustado al equipo (análisis de sensibilidad)</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contenido </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#c-1-sesion-la-del-capitulo-3-y-datos">3c.1 Sesión (la del capítulo 3) y datos</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#c-2-experimento-de-escala-con-12-particiones">3c.2 Experimento de escala con 12 particiones</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#c-3-comparacion-con-scikit-learn-y-con-las-400-particiones">3c.3 Comparación con scikit-learn y con las 400 particiones</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="c-pyspark-con-el-paralelismo-ajustado-al-equipo-analisis-de-sensibilidad">
+<h1>3c · PySpark con el paralelismo ajustado al equipo (análisis de sensibilidad)<a class="headerlink" href="#c-pyspark-con-el-paralelismo-ajustado-al-equipo-analisis-de-sensibilidad" title="Permalink to this heading">#</a></h1>
+<p>En el capítulo 3b el experimento de escala mostró que, con las <strong>400 particiones de la sesión</strong>, Spark
+gasta ≈ 160 s de costo fijo aunque se entrene con solo 10 000 filas, y que en la prueba de particiones
+(3b.4) usar ≈ 12 particiones (los hilos del equipo utilizado) fue ≈ 9.4 veces más rápido. Para que la comparación con scikit-learn no dependa
+únicamente de una configuración de Spark poco adecuada para el equipo utilizado, aquí se repite el
+experimento de escala con el DataFrame de entrenamiento reagrupado en <strong>12 particiones</strong>.</p>
+<div class="admonition important">
+<p class="admonition-title">Importante</p>
+<p>Esta variante <strong>no sustituye</strong> la configuración del capítulo 3: los resultados de los capítulos 3 y 5
+usan las 400 particiones. Sirve para responder a la pregunta
+«¿desde qué volumen conviene Spark?»: la respuesta depende de cómo esté configurado, y una máquina
+de 12 hilos no es un clúster.</p>
+</div>
+<div class="cell tag_hide-input docutils container">
+<details class="hide above-input">
+<summary aria-label="Toggle hidden content">
+<span class="collapsed">Mostrar el código</span>
+<span class="expanded">Ocultar el código</span>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">platform</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">seaborn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">sns</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">IPython.display</span><span class="w"> </span><span class="kn">import</span> <span class="n">display</span>
+
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span><span class="p">))</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src</span><span class="w"> </span><span class="kn">import</span> <span class="n">lc_spark</span> <span class="k">as</span> <span class="n">lcs</span>  <span class="c1"># noqa: E402</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">src</span><span class="w"> </span><span class="kn">import</span> <span class="n">lc_utils</span> <span class="k">as</span> <span class="n">lc</span>  <span class="c1"># noqa: E402</span>
+
+<span class="n">lcs</span><span class="o">.</span><span class="n">configure_java</span><span class="p">()</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pyspark</span>  <span class="c1"># noqa: E402</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyspark</span><span class="w"> </span><span class="kn">import</span> <span class="n">StorageLevel</span>  <span class="c1"># noqa: E402</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyspark.ml.classification</span><span class="w"> </span><span class="kn">import</span> <span class="n">RandomForestClassifier</span>  <span class="c1"># noqa: E402</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyspark.ml.evaluation</span><span class="w"> </span><span class="kn">import</span> <span class="n">BinaryClassificationEvaluator</span>  <span class="c1"># noqa: E402</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyspark.sql</span><span class="w"> </span><span class="kn">import</span> <span class="n">functions</span> <span class="k">as</span> <span class="n">F</span>  <span class="c1"># noqa: E402</span>
+
+<span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">"ignore"</span><span class="p">,</span> <span class="n">category</span><span class="o">=</span><span class="ne">FutureWarning</span><span class="p">)</span>
+<span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s2">"display.width"</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+<span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s2">"display.float_format"</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">v</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">v</span><span class="si">:</span><span class="s2">,.4f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="n">sns</span><span class="o">.</span><span class="n">set_theme</span><span class="p">(</span><span class="n">style</span><span class="o">=</span><span class="s2">"whitegrid"</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="s2">"notebook"</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">"figure.dpi"</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span> <span class="s2">"axes.titleweight"</span><span class="p">:</span> <span class="s2">"bold"</span><span class="p">})</span>
+<span class="n">RESULTS</span><span class="p">,</span> <span class="n">DATA_DIR</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"../resultados"</span><span class="p">),</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"../data"</span><span class="p">)</span>
+<span class="n">MAXMEM</span> <span class="o">=</span> <span class="mi">64</span>
+<span class="n">NPART</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Python </span><span class="si">{</span><span class="n">platform</span><span class="o">.</span><span class="n">python_version</span><span class="p">()</span><span class="si">}</span><span class="s2"> · PySpark </span><span class="si">{</span><span class="n">pyspark</span><span class="o">.</span><span class="n">__version__</span><span class="si">}</span><span class="s2"> · </span><span class="si">{</span><span class="n">NPART</span><span class="si">}</span><span class="s2"> hilos lógicos"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</details>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Python 3.10.21 · PySpark 3.5.9 · 12 hilos lógicos
+</pre></div>
+</div>
+</div>
+</div>
+<section id="c-1-sesion-la-del-capitulo-3-y-datos">
+<h2>3c.1 Sesión (la del capítulo 3) y datos<a class="headerlink" href="#c-1-sesion-la-del-capitulo-3-y-datos" title="Permalink to this heading">#</a></h2>
+<p>La sesión sigue teniendo <code class="docutils literal notranslate"><span class="pre">spark.default.parallelism</span> <span class="pre">=</span> <span class="pre">400</span></code>; lo único que cambia es el número de
+particiones del <strong>DataFrame de entrenamiento</strong> de cada ajuste.</p>
+<div class="cell tag_hide-input docutils container">
+<details class="hide above-input">
+<summary aria-label="Toggle hidden content">
+<span class="collapsed">Mostrar el código</span>
+<span class="expanded">Ocultar el código</span>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="n">spark</span> <span class="o">=</span> <span class="n">lcs</span><span class="o">.</span><span class="n">start_session</span><span class="p">()</span>
+<span class="n">train_f</span><span class="p">,</span> <span class="n">test_f</span><span class="p">,</span> <span class="n">prep_model</span><span class="p">,</span> <span class="n">keep</span><span class="p">,</span> <span class="n">to_model_input</span><span class="p">,</span> <span class="n">feat</span><span class="p">,</span> <span class="n">train_raw</span> <span class="o">=</span> <span class="n">lcs</span><span class="o">.</span><span class="n">prepare</span><span class="p">(</span><span class="n">spark</span><span class="p">,</span> <span class="n">DATA_DIR</span><span class="p">)</span>
+<span class="n">n_train_f</span> <span class="o">=</span> <span class="n">train_f</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Sesión y datos listos en </span><span class="si">{</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">t0</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> s · train </span><span class="si">{</span><span class="n">n_train_f</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="n">evaluador</span> <span class="o">=</span> <span class="n">BinaryClassificationEvaluator</span><span class="p">(</span><span class="n">labelCol</span><span class="o">=</span><span class="s2">"default"</span><span class="p">,</span> <span class="n">rawPredictionCol</span><span class="o">=</span><span class="s2">"rawPrediction"</span><span class="p">,</span> <span class="n">metricName</span><span class="o">=</span><span class="s2">"areaUnderROC"</span><span class="p">)</span>
+<span class="n">test_pocas</span> <span class="o">=</span> <span class="n">test_f</span><span class="o">.</span><span class="n">coalesce</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>   <span class="c1"># pocas tareas simultáneas: cada una recibe una copia del modelo</span>
+</pre></div>
+</div>
+</div>
+</details>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Sesión y datos listos en 93 s · train 1,076,248
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="c-2-experimento-de-escala-con-12-particiones">
+<h2>3c.2 Experimento de escala con 12 particiones<a class="headerlink" href="#c-2-experimento-de-escala-con-12-particiones" title="Permalink to this heading">#</a></h2>
+<p>Mismo bosque fijo que en 3b.5 (50 árboles, profundidad 10) y los mismos subconjuntos (<code class="docutils literal notranslate"><span class="pre">rank</span></code> &lt; N).</p>
+<div class="cell tag_hide-input docutils container">
+<details class="hide above-input">
+<summary aria-label="Toggle hidden content">
+<span class="collapsed">Mostrar el código</span>
+<span class="expanded">Ocultar el código</span>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tam</span> <span class="o">=</span> <span class="p">[</span><span class="mi">10_000</span><span class="p">,</span> <span class="mi">50_000</span><span class="p">,</span> <span class="mi">100_000</span><span class="p">,</span> <span class="mi">250_000</span><span class="p">,</span> <span class="mi">500_000</span><span class="p">,</span> <span class="n">n_train_f</span><span class="p">]</span>
+<span class="n">esc</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">tam</span><span class="p">:</span>
+    <span class="n">sub</span> <span class="o">=</span> <span class="n">train_f</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"rank"</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">n</span><span class="p">)</span><span class="o">.</span><span class="n">repartition</span><span class="p">(</span><span class="n">NPART</span><span class="p">)</span><span class="o">.</span><span class="n">persist</span><span class="p">(</span><span class="n">StorageLevel</span><span class="o">.</span><span class="n">MEMORY_AND_DISK</span><span class="p">)</span>
+    <span class="n">filas</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+    <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">mdl</span> <span class="o">=</span> <span class="n">RandomForestClassifier</span><span class="p">(</span><span class="n">labelCol</span><span class="o">=</span><span class="s2">"default"</span><span class="p">,</span> <span class="n">featuresCol</span><span class="o">=</span><span class="s2">"features"</span><span class="p">,</span> <span class="n">numTrees</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">maxDepth</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">lc</span><span class="o">.</span><span class="n">SEED</span><span class="p">,</span>
+                                 <span class="n">maxMemoryInMB</span><span class="o">=</span><span class="n">MAXMEM</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">sub</span><span class="p">)</span>
+    <span class="n">t_fit</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t0</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">evaluador</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">mdl</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">test_pocas</span><span class="p">))</span>
+    <span class="n">esc</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">"filas_train"</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">filas</span><span class="p">),</span> <span class="s2">"t_ajuste_s"</span><span class="p">:</span> <span class="n">t_fit</span><span class="p">,</span> <span class="s2">"auc_test"</span><span class="p">:</span> <span class="n">a</span><span class="p">})</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">filas</span><span class="si">:</span><span class="s2">&gt;10,</span><span class="si">}</span><span class="s2"> filas · ajuste </span><span class="si">{</span><span class="n">t_fit</span><span class="si">:</span><span class="s2">7.1f</span><span class="si">}</span><span class="s2"> s · AUC </span><span class="si">{</span><span class="n">a</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">sub</span><span class="o">.</span><span class="n">unpersist</span><span class="p">()</span>
+    <span class="k">del</span> <span class="n">mdl</span>
+    <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">esc</span><span class="p">)</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">RESULTS</span> <span class="o">/</span> <span class="s2">"escala_spark_12part.csv"</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">esc</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">esc</span><span class="p">)</span>
+<span class="n">display</span><span class="p">(</span><span class="n">esc</span><span class="p">)</span>
+<span class="n">spark</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</details>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>    10,000 filas · ajuste    11.9 s · AUC 0.7006
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>    50,000 filas · ajuste    13.3 s · AUC 0.7075
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>   100,000 filas · ajuste    16.4 s · AUC 0.7088
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>   250,000 filas · ajuste    27.3 s · AUC 0.7095
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>   500,000 filas · ajuste    40.4 s · AUC 0.7091
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span> 1,076,248 filas · ajuste    69.4 s · AUC 0.7084
+</pre></div>
+</div>
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>filas_train</th>
+      <th>t_ajuste_s</th>
+      <th>auc_test</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>10000</td>
+      <td>11.9233</td>
+      <td>0.7006</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>50000</td>
+      <td>13.3037</td>
+      <td>0.7075</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>100000</td>
+      <td>16.3609</td>
+      <td>0.7088</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>250000</td>
+      <td>27.2646</td>
+      <td>0.7095</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>500000</td>
+      <td>40.3746</td>
+      <td>0.7091</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>1076248</td>
+      <td>69.4192</td>
+      <td>0.7084</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+</section>
+<section id="c-3-comparacion-con-scikit-learn-y-con-las-400-particiones">
+<h2>3c.3 Comparación con scikit-learn y con las 400 particiones<a class="headerlink" href="#c-3-comparacion-con-scikit-learn-y-con-las-400-particiones" title="Permalink to this heading">#</a></h2>
+<p>La comparación de las tres versiones (scikit-learn, Spark con 400 particiones y Spark con 12) se presenta
+en la sección 6.4, junto con el ajuste afín <code class="docutils literal notranslate"><span class="pre">t</span> <span class="pre">=</span> <span class="pre">a</span> <span class="pre">+</span> <span class="pre">b·n</span></code> de cada curva. Con el entrenamiento completo, el
+mismo bosque tarda ≈ 16 s en scikit-learn, ≈ 69 s en Spark con 12 particiones y ≈ 258 s con 400 (≈ 4× y
+≈ 16× más). Reagrupar a 12 particiones reduce el costo fijo de Spark de ≈ 170 s a ≈ 12 s, pero su costo por
+fila sigue siendo mayor que el de scikit-learn (≈ 54 s por millón de filas frente a ≈ 15 s), así que las
+rectas no se cruzan en el equipo utilizado.</p>
+<p>La ventaja de Spark aparece cuando los datos <strong>no caben en la memoria de una máquina</strong>, donde scikit-learn
+requeriría estrategias fuera de memoria, o cuando hay un <strong>clúster</strong> con muchos nodos. Con el equipo utilizado (16 GB
+de RAM) y este volumen (1.08 millones de filas de entrenamiento, 21 variables) no se llega a ese punto.</p>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./notebooks"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="03b_pyspark_costos.html"
+       title="página anterior">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">anterior</p>
+        <p class="prev-next-title">3b · Costos de PySpark: latencia de predicción y efecto de la configuración</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="04_lime.html"
+       title="siguiente página">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">siguiente</p>
+        <p class="prev-next-title">4 · Interpretabilidad con LIME</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contenido
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#c-1-sesion-la-del-capitulo-3-y-datos">3c.1 Sesión (la del capítulo 3) y datos</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#c-2-experimento-de-escala-con-12-particiones">3c.2 Experimento de escala con 12 particiones</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#c-3-comparacion-con-scikit-learn-y-con-las-400-particiones">3c.3 Comparación con scikit-learn y con las 400 particiones</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+Por Ana Galván Arias, Valeria Oñate López, María José Ruiz Arias
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2026.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
